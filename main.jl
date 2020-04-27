@@ -1,10 +1,15 @@
 using OrdinaryDiffEq #Gets the solvers
+using PowerSystems
 using Plots
-include(joinpath(pwd(), "DCSideBatteryModeling", "DCSideBatteryModeling.jl"))
+
+include(joinpath(pwd(), "InverterDynamicLinesModels", "InverterDynamicLinesModels.jl"))
+# Not working due to de-serializatio of OuterControl
+#omib_sys = System(joinpath(pwd(), "data","OMIB_inverter.json"))
+include(joinpath(pwd(), "data","make_data.jl"))
 
 # Returns Generic ODE system
 model = get_model()
-ode_prob = instantiate_model(model, (0.0, 0.1))
+ode_prob = instantiate_model(model, (0.0, 0.1), omib_sys)
 sol1 = solve(ode_prob, Tsit5())
 plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
 
