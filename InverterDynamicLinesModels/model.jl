@@ -44,39 +44,59 @@ function get_internal_model(::Nothing)
 
     # Definition of the states
     states = MTK.@variables begin
-        eg_d(t) #d-axis capacitor filter voltage
-        eg_q(t) #q-axis capacitor filter voltage
-        is_d(t) #d-axis current flowing into filter
-        is_q(t) #q-axis current flowing into filter
-        ig_d(t) #d-axis current flowing into grid
-        ig_q(t) #q-axis current flowing into grid
-        pf(t)   #Filtered active power measurement
-        qf(t)   #Filtered reactive power measurement
+        # Grid States
+        ig_r(t)         # real current flowing into grid
+        ig_i(t)         # imaginary current flowing into grid
+        vg_from_r(t)    # real voltage from-side of line
+        vg_from_i(t)    # imaginary voltage from-side of line
+        vg_to_r(t)      # real voltage to-side of line
+        vg_to_i(t)      # imaginary voltage to-side of line
+        # Filter States
+        eg_r(t) # real capacitor filter voltage
+        eg_i(t) # imaginary capacitor filter voltage
+        ic_r(t) # real current flowing into filter
+        ic_i(t) # imaginary current flowing into filter
+        if_r(t) # real current flowing out of the filter
+        if_i(t) # imaginary current flowing out of the filter
+        # Inner Loop Control States
         ξ_d(t)  #d-axis integrator term for outer AC/DC PI controller
         ξ_q(t)  #q-axis integrator term for outer AC/DC PI controller
         γ_d(t)  #d-axis integrator term for inner AC/DC PI controller
         γ_q(t)  #d-axis integrator term for inner AC/DC PI controller
+        # VSM Control States
+        θ(t)    # Outer Control Angle
+        ω(t)    # Outer Control Frequency
     end
 
     # Definition of the variables for non-linear system. Requires https://github.com/SciML/ModelingToolkit.jl/issues/322 to eliminate
     variables = MTK.@variables begin
-        eg_d #d-axis capacitor filter voltage
-        eg_q #q-axis capacitor filter voltage
-        is_d #d-axis current flowing into filter
-        is_q #q-axis current flowing into filter
-        ig_d #d-axis current flowing into grid
-        ig_q #q-axis current flowing into grid
-        pf   #Filtered active power measurement
-        qf   #Filtered reactive power measurement
-        ξ_d  #d-axis integrator term for outer AC/DC PI controller
-        ξ_q  #q-axis integrator term for outer AC/DC PI controller
-        γ_d  #d-axis integrator term for inner AC/DC PI controller
-        γ_q  #d-axis integrator term for inner AC/DC PI controller
+        # Grid States
+        ig_r        # real current flowing into grid
+        ig_i        # imaginary current flowing into grid
+        vg_from_r   # real voltage from-side of line
+        vg_from_i   # imaginary voltage from-side of line
+        vg_to_r     # real voltage to-side of line
+        vg_to_i     # imaginary voltage to-side of line
+        # Filter States
+        ef_r        # real capacitor filter voltage
+        ef_i        # imaginary capacitor filter voltage
+        ic_r        # real current flowing into filter
+        ic_i        # imaginary current flowing into filter
+        if_r        # real current flowing out of the filter
+        if_i        # imaginary current flowing out of the filter
+        # Inner Loop Control States
+        ξ_d         # d-axis integrator term for outer AC/DC PI controller
+        ξ_q         # q-axis integrator term for outer AC/DC PI controller
+        γ_d         # d-axis integrator term for inner AC/DC PI controller
+        γ_q         # d-axis integrator term for inner AC/DC PI controller
+        # VSM Control States
+        θ           # Outer Control Angle
+        ω           # Outer Control Frequency
     end
 
     # Expressions
-    pm = eg_d * ig_d + eg_q * ig_q  # AC Active Power Calculation
-    qm = -eg_d * ig_q + eg_q * ig_d # AC Reactive Power Calculation
+    pm = ef_r * ic_r + ef_q * ig_q  # AC Active Power into the filter
+    qm = -eg_d * ig_q + eg_q * ig_d # AC Reactive Power into the filter
     ω_a = ωʳ + Dp * (pʳ - pf)  # Active Power Drop
     v_hat = vʳ + Dq * (qʳ - qf) # Reactive Power Drop
     v_iref_d = v_hat - rv * ig_d + ω_a * lv * ig_q # Inner voltage controller d PI
@@ -89,23 +109,22 @@ function get_internal_model(::Nothing)
     q_inv = -v_md * is_q + v_mq * is_d
 
     model_rhs = [
-        ### Grid forming equations
-        #𝜕eg_d/𝜕t
-        (ωb / cf) * (is_d - ig_d) + ω_a * ωb * eg_q
-        #𝜕eg_q/𝜕t
-        (ωb / cf) * (is_q - ig_q) - ω_a * ωb * eg_d
-        #𝜕is_d/𝜕t
-        (ωb / lf) * (v_md - eg_d) - (rf * ωb / lf) * is_d + ωb * ω_a * is_q
-        #𝜕is_q/𝜕t
-        (ωb / lf) * (v_mq - eg_q) - (rf * ωb / lf) * is_q - ωb * ω_a * is_d
-        #𝜕ig_d/𝜕t
-        (ωb / lt) * (eg_d - v_gd) - (rt * ωb / lt) * ig_d + ωb * ω_a * ig_q
-        #𝜕ig_q/𝜕t
-        (ωb / lt) * (eg_q - v_gq) - (rt * ωb / lt) * ig_q - ωb * ω_a * ig_d
-        #𝜕pf/𝜕t
-        ωz * (pm - pf)
-        #𝜕qf/𝜕t
-        ωz * (qm - qf)
+        # Line Equations
+        (ω_b / L) * ((V_r_from[1] - V_r_to[1]) - (R * Il_r - L * Il_i))
+        (ω_b / L) * ((V_i_from[1] - V_i_to[1]) - (R * Il_i + L * Il_r))
+        ωb / cf * Ir_cnv - ωb / cf * Ir_filter + ωb * ω_sys * Vi_filter
+        ωb / cf * Ii_cnv - ωb / cf * Ii_filter - ωb * ω_sys * Vr_filter
+        ωb / cf * Ir_cnv - ωb / cf * Ir_filter + ωb * ω_sys * Vi_filter
+        ωb / cf * Ii_cnv - ωb / cf * Ii_filter - ωb * ω_sys * Vr_filter
+        #Filter Equations
+        ωb / lf * Vr_cnv - ωb / lf * Vr_filter - ωb * rf / lf * Ir_cnv + ωb * ω_sys * Ii_cnv
+        ωb / lf * Vi_cnv - ωb / lf * Vi_filter - ωb * rf / lf * Ii_cnv - ωb * ω_sys * Ir_cnv
+        ωb / cf * Ir_cnv - ωb / cf * Ir_filter + ωb * ω_sys * Vi_filter
+        ωb / cf * Ii_cnv - ωb / cf * Ii_filter - ωb * ω_sys * Vr_filter
+        ωb / lg * Vr_filter - ωb / lg * V_tR - ωb * rg / lg * Ir_filter + ωb * ω_sys * Ii_filter
+        ωb / lg * Vi_filter - ωb / lg * V_tI - ωb * rg / lg * Ii_filter - ωb * ω_sys * Ir_filter
+
+        ### Inner Control Equations
         #𝜕ξ_d/𝜕t
         v_iref_d - eg_d
         #𝜕ξ_q/𝜕t
@@ -114,7 +133,8 @@ function get_internal_model(::Nothing)
         i_hat_d - is_d
         #𝜕γ_q/𝜕t
         i_hat_q - is_q
-        ## Line equations
+
+        ### Outer Control Equations
 
     ]
 
@@ -132,7 +152,6 @@ function get_internal_model(::Nothing)
         d(ξ_q)
         d(γ_d)
         d(γ_q)
-
     ]
 
     return model_lhs, model_rhs, states, variables, params
