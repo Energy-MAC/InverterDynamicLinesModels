@@ -8,7 +8,7 @@ slack_bus = get_components_by_name(Component, omib_sys, "BUS 1")[1]
 inf_source = Source(
     name = "InfBus",
     available = true,
-    activepower = -0.5,
+    activepower = -0.,
     reactivepower = 0.0,
     bus = slack_bus,
     X_th = 0.000005
@@ -24,8 +24,8 @@ battery = GenericBattery(
     bus = inv_bus,
     energy = 5.0,
     capacity = (min = 5.0, max = 100.0),
-    rating = 70,
-    activepower = 0.5,
+    rating = 0.0275, #Value in per_unit of the system
+    activepower = 0.01375,
     inputactivepowerlimits = (min = 0.0, max = 50.0),
     outputactivepowerlimits = (min = 0.0, max = 50.0),
     reactivepower = 0.0,
@@ -100,7 +100,7 @@ inverter = PSY.DynamicInverter(
         V_ref = get_voltage(get_bus(battery)),
         P_ref = get_activepower(battery),
         Q_ref = get_reactivepower(battery),
-        MVABase = 2.75,
+        MVABase = get_rating(battery),
         converter = converter(),
         outer_control = outer_control(),
         inner_control = inner_control(),
@@ -110,3 +110,4 @@ inverter = PSY.DynamicInverter(
     )
 
 add_component!(omib_sys, inverter)
+to_json(omib_sys, joinpath(pwd(), "data/OMIB_inverter.json"))
