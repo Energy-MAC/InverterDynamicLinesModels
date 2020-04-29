@@ -71,6 +71,7 @@ function get_internal_model(::Nothing)
         # VSM Control States
         θ(t)    # Outer Control Angle
         ω(t)    # Outer Control Frequency
+        qf(t)          # Filtered Reactive Power
     end
 
     # Definition of the variables for non-linear system. Requires https://github.com/SciML/ModelingToolkit.jl/issues/322 to eliminate
