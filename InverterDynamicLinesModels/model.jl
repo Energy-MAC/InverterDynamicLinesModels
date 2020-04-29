@@ -26,8 +26,8 @@ function get_internal_model(::Nothing)
         lt      # Transformer reactance
         # OuterControl Loops
         M    # Virtual Inertia Constant
-        kd   # Active Power Frequency Setpoint Damping
-        kω   # Active Power PLL Frequency Damping
+        kd   # Active Power PLL Frequency Damping
+        kω   # Active Power Frequency Setpoint Damping
         kq   # Reactive Power Droop
         ωf   # Cut-Off frequency Low-Pass Filter (both Active and Reactive)
         # SRF Voltage Control
@@ -144,18 +144,18 @@ function get_internal_model(::Nothing)
         (Ωb / lt) * (ef_q - vg_from_q) - Ωb * rt / lt * if_q - Ωb * ω_sys * if_d
         ### Inner Control Equations
         #𝜕ξ_d/𝜕t
-        v_iref_d - eg_d
+        v_iref_d - ef_d
         #𝜕ξ_q/𝜕t
-        v_iref_q - eg_q
+        v_iref_q - ef_q
         #𝜕γ_d/𝜕t
-        i_hat_d - is_d
+        i_hat_d - ic_d
         #𝜕γ_q/𝜕t
-        i_hat_q - is_q
+        i_hat_q - ic_q
         ### Outer Control Equations
         #𝜕θ/𝜕t
         Ωb*(ω - ω_sys)
         #𝜕ω/𝜕t
-        (1/M) * ( (pʳ - pm) + kd * (ωʳ - ω)
+        (1/M) * ( (pʳ - pm) + kω * (ωʳ - ω) )
         #𝜕qf/𝜕t
         ωf * (qm - qf)
     ]
@@ -193,10 +193,9 @@ end
 function instantiate_model(
     model,
     tspan::Tuple,
-    system::PSY.System,
 )
-    parameter_values = instantiate_parameters(model, system)
-    initial_conditions = instantiate_initial_conditions(model, parameter_values, system)
+    parameter_values = instantiate_parameters(model) #, system)
+    initial_conditions = instantiate_initial_conditions(model, parameter_values) #, system)
     return DiffEqBase.ODEProblem(
         model,
         initial_conditions,
