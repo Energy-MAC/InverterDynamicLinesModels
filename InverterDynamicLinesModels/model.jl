@@ -3,11 +3,16 @@ function get_internal_model(::Nothing)
     params = MTK.@parameters begin
         t
         # AC side quantities
-        ωb      # Base Frequency
+        Ωb      # Base Frequency
+        ω_sys   # Grid frequency in pu
+        Sb      # Base Power of system
         # Line impedance
         lg      # Line reactance
         rg      # Line resistance
         cg      # Line capacitance
+        # Infinite bus voltage
+        vg_to_r     #real voltage to-side of line
+        vg_to_i     #imaginary voltage to-side of line
         #Reference set-point input
         pʳ      # Active Power Setpoint
         qʳ      # Reactive Power Setpoint
@@ -20,24 +25,24 @@ function get_internal_model(::Nothing)
         rt      # Transformer resistance
         lt      # Transformer reactance
         # OuterControl Loops
-        Ta
-        Kq
-        kω
-        kq
-        ωf
-        # SRF Current Control
-        kpc     # Current control propotional gain
-        kic     # Current control integral gain
-        kffi    # FeedForward Control for current
-        ωad     # Active damping low pass filter cut-off frequency
-        kad
+        M    # Virtual Inertia Constant
+        kd   # Active Power Frequency Setpoint Damping
+        kω   # Active Power PLL Frequency Damping
+        kq   # Reactive Power Droop
+        ωf   # Cut-Off frequency Low-Pass Filter (both Active and Reactive)
         # SRF Voltage Control
         kpv     # Voltage control propotional gain
         kiv     # Voltage control integral gain
-        kffv    # FeedForward Control for voltage
+        kffi    # FeedForward Control for current in voltage control
+        # SRF Current Control
+        kpc     # Current control propotional gain
+        kic     # Current control integral gain
+        kffv    # FeedForward Control for voltage in current control
         # Virtual Impedance
         rv
         lv
+        # Base Power
+        Sinv    # Base Power for Inverter
     end
 
     MTK.@derivatives d'~t
@@ -45,19 +50,19 @@ function get_internal_model(::Nothing)
     # Definition of the states
     states = MTK.@variables begin
         # Grid States
-        ig_r(t)         # real current flowing into grid
-        ig_i(t)         # imaginary current flowing into grid
+        il_r(t)         # real current flowing in line
+        il_i(t)         # imaginary current flowing in line
         vg_from_r(t)    # real voltage from-side of line
         vg_from_i(t)    # imaginary voltage from-side of line
-        vg_to_r(t)      # real voltage to-side of line
-        vg_to_i(t)      # imaginary voltage to-side of line
+        #vg_to_r(t)      # real voltage to-side of line
+        #vg_to_i(t)      # imaginary voltage to-side of line
         # Filter States
-        eg_r(t) # real capacitor filter voltage
-        eg_i(t) # imaginary capacitor filter voltage
-        ic_r(t) # real current flowing into filter
-        ic_i(t) # imaginary current flowing into filter
-        if_r(t) # real current flowing out of the filter
-        if_i(t) # imaginary current flowing out of the filter
+        ef_d(t) # d-axis capacitor filter voltage
+        ef_q(t) # q-axis capacitor filter voltage
+        ic_d(t) # d-axis current flowing into filter
+        ic_q(t) # q-axis current flowing into filter
+        if_d(t) # d-axis flowing out of the filter
+        if_q(t) # q-axis current flowing out of the filter
         # Inner Loop Control States
         ξ_d(t)  #d-axis integrator term for outer AC/DC PI controller
         ξ_q(t)  #q-axis integrator term for outer AC/DC PI controller
@@ -71,19 +76,19 @@ function get_internal_model(::Nothing)
     # Definition of the variables for non-linear system. Requires https://github.com/SciML/ModelingToolkit.jl/issues/322 to eliminate
     variables = MTK.@variables begin
         # Grid States
-        ig_r        # real current flowing into grid
-        ig_i        # imaginary current flowing into grid
+        il_r        # real current flowing into grid
+        il_i        # imaginary current flowing into grid
         vg_from_r   # real voltage from-side of line
         vg_from_i   # imaginary voltage from-side of line
-        vg_to_r     # real voltage to-side of line
-        vg_to_i     # imaginary voltage to-side of line
+        #vg_to_r     # real voltage to-side of line
+        #vg_to_i     # imaginary voltage to-side of line
         # Filter States
-        ef_r        # real capacitor filter voltage
-        ef_i        # imaginary capacitor filter voltage
-        ic_r        # real current flowing into filter
-        ic_i        # imaginary current flowing into filter
-        if_r        # real current flowing out of the filter
-        if_i        # imaginary current flowing out of the filter
+        ef_d # d-axis capacitor filter voltage
+        ef_q # q-axis capacitor filter voltage
+        ic_d # d-axis current flowing into filter
+        ic_q # q-axis current flowing into filter
+        if_d # d-axis flowing out of the filter
+        if_q # q-axis current flowing out of the filter
         # Inner Loop Control States
         ξ_d         # d-axis integrator term for outer AC/DC PI controller
         ξ_q         # q-axis integrator term for outer AC/DC PI controller
@@ -92,38 +97,50 @@ function get_internal_model(::Nothing)
         # VSM Control States
         θ           # Outer Control Angle
         ω           # Outer Control Frequency
+        qf          # Filtered Reactive Power
     end
 
     # Expressions
-    pm = ef_r * ic_r + ef_q * ig_q  # AC Active Power into the filter
-    qm = -eg_d * ig_q + eg_q * ig_d # AC Reactive Power into the filter
-    ω_a = ωʳ + Dp * (pʳ - pf)  # Active Power Drop
-    v_hat = vʳ + Dq * (qʳ - qf) # Reactive Power Drop
-    v_iref_d = v_hat - rv * ig_d + ω_a * lv * ig_q # Inner voltage controller d PI
-    v_iref_q = -rv * ig_q- ω_a * lv * ig_d # Inner voltage controller q PI
-    i_hat_d = kvp * (v_iref_d - eg_d) + kvi * ξ_d - ω_a * cf * eg_q # Inner current controller d PI
-    i_hat_q = kvp * (v_iref_d - eg_q) + kvi * ξ_q + ω_a * cf * eg_d # Inner current controller q PI
-    v_md = kip * (i_hat_d - is_d) + kii * γ_d - ω_a * lf * is_q
-    v_mq = kip * (i_hat_q - is_q) + kii * γ_q + ω_a * lf * is_d
-    p_inv = v_md * is_d + v_mq * is_q
-    q_inv = -v_md * is_q + v_mq * is_d
+    pm = ef_d * if_d + ef_q * if_q  # AC Active Power into the filter
+    qm = -ef_d * if_q + ef_q * if_d # AC Reactive Power into the filter
+    #ω_a = ωʳ + Dp * (pʳ - pf)  # Active Power Droop: Not applicable in VSM
+    v_hat = vʳ + kq * (qʳ - qf) # Reactive Power Droop
+    v_iref_d = v_hat - rv * if_d + ω * lv * if_q # Inner voltage controller d PI
+    v_iref_q = -rv * if_q - ω * lv * if_d # Inner voltage controller q PI
+    i_hat_d = kpv * (v_iref_d - ef_d) + kiv * ξ_d - ω * cf * ef_q + kffi * if_d # Inner current controller d PI
+    i_hat_q = kpv * (v_iref_q - ef_q) + kiv * ξ_q + ω * cf * ef_d # Inner current controller q PI
+    v_md = kpc * (i_hat_d - ic_d) + kic * γ_d - ω * lf * ic_q
+    v_mq = kpc * (i_hat_q - ic_q) + kic * γ_q + ω * lf * ic_d
+    p_inv = v_md * ic_d + v_mq * ic_q
+    q_inv = -v_md * ic_q + v_mq * ic_d
+    if_r = (Sinv/Sb) * (cos(θ)*if_d - sin(θ)*if_q)
+    if_i = (Sinv/Sb) * (sin(θ)*if_d + cos(θ)*if_q)
+    vg_from_d = cos(θ)*vg_from_r + sin(θ)*vg_from_i
+    vg_from_q = -sin(θ)*vg_from_r + cos(θ)*vg_from_i
 
     model_rhs = [
         # Line Equations
-        (ω_b / L) * ((V_r_from[1] - V_r_to[1]) - (R * Il_r - L * Il_i))
-        (ω_b / L) * ((V_i_from[1] - V_i_to[1]) - (R * Il_i + L * Il_r))
-        ωb / cf * Ir_cnv - ωb / cf * Ir_filter + ωb * ω_sys * Vi_filter
-        ωb / cf * Ii_cnv - ωb / cf * Ii_filter - ωb * ω_sys * Vr_filter
-        ωb / cf * Ir_cnv - ωb / cf * Ir_filter + ωb * ω_sys * Vi_filter
-        ωb / cf * Ii_cnv - ωb / cf * Ii_filter - ωb * ω_sys * Vr_filter
+        #𝜕il_r/𝜕t
+        (Ωb / lg) * ((vg_from_r - vg_to_r) - (rg * il_r - lg * ω_sys * il_i))
+        #𝜕il_i/𝜕t
+        (Ωb / lg) * ((vg_from_i - vg_to_i) - (rg * il_i + lg * ω_sys * il_r))
+        #𝜕vg_from_r/𝜕t
+        (Ωb / (2*cg) ) * (if_r - il_r) + Ωb * ω_sys * vg_from_i
+        ##𝜕vg_from_i/𝜕t
+        (Ωb / (2*cg) ) * (if_i - il_i) - Ωb * ω_sys * vg_from_r
         #Filter Equations
-        ωb / lf * Vr_cnv - ωb / lf * Vr_filter - ωb * rf / lf * Ir_cnv + ωb * ω_sys * Ii_cnv
-        ωb / lf * Vi_cnv - ωb / lf * Vi_filter - ωb * rf / lf * Ii_cnv - ωb * ω_sys * Ir_cnv
-        ωb / cf * Ir_cnv - ωb / cf * Ir_filter + ωb * ω_sys * Vi_filter
-        ωb / cf * Ii_cnv - ωb / cf * Ii_filter - ωb * ω_sys * Vr_filter
-        ωb / lg * Vr_filter - ωb / lg * V_tR - ωb * rg / lg * Ir_filter + ωb * ω_sys * Ii_filter
-        ωb / lg * Vi_filter - ωb / lg * V_tI - ωb * rg / lg * Ii_filter - ωb * ω_sys * Ir_filter
-
+        #𝜕ef_d/𝜕t
+        Ωb / cf * (ic_d - if_d) + Ωb * ω_sys * ef_q
+        #𝜕ef_q/𝜕t
+        Ωb / cf * (ic_q - if_q) - Ωb * ω_sys * ef_d
+        #𝜕ic_d/𝜕t
+        (Ωb / lf) * (v_md - ef_d) - Ωb * rf / lf * ic_d + Ωb * ω_sys * ic_q
+        #𝜕ic_q/𝜕t
+        (Ωb / lf) * (v_mq - ef_q) - Ωb * rf / lf * ic_q - Ωb * ω_sys * ic_d
+        #𝜕if_d/𝜕t
+        (Ωb / lt) * (ef_d - vg_from_d) - Ωb * rt / lt * if_d + Ωb * ω_sys * if_q
+        #𝜕if_q/𝜕t
+        (Ωb / lt) * (ef_q - vg_from_q) - Ωb * rt / lt * if_q - Ωb * ω_sys * if_d
         ### Inner Control Equations
         #𝜕ξ_d/𝜕t
         v_iref_d - eg_d
@@ -133,25 +150,34 @@ function get_internal_model(::Nothing)
         i_hat_d - is_d
         #𝜕γ_q/𝜕t
         i_hat_q - is_q
-
         ### Outer Control Equations
-
+        #𝜕θ/𝜕t
+        Ωb*(ω - ω_sys)
+        #𝜕ω/𝜕t
+        (1/M) * ( (pʳ - pm) + kd * (ωʳ - ω)
+        #𝜕qf/𝜕t
+        ωf * (qm - qf)
     ]
 
     # Temporary until SteadyState problems are resolved.
     model_lhs = [
-        d(eg_d)
-        d(eg_q)
-        d(is_d)
-        d(is_q)
-        d(ig_d)
-        d(ig_q)
-        d(pf)
-        d(qf)
+        d(il_r)
+        d(il_i)
+        d(vg_from_r)
+        d(vg_from_i)
+        d(ef_d)
+        d(ef_q)
+        d(ic_d)
+        d(ic_q)
+        d(if_d)
+        d(if_q)
         d(ξ_d)
         d(ξ_q)
         d(γ_d)
         d(γ_q)
+        d(θ)
+        d(ω)
+        d(qf)
     ]
 
     return model_lhs, model_rhs, states, variables, params
