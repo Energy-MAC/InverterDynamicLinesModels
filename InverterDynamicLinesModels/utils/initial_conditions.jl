@@ -16,21 +16,26 @@ function solve_steady_state(initial_guess, parameter_values)
     println(sol)
     return sol.zero
 end
-function instantiate_initial_conditions(model, parameter_values, system::PSY.System)
+function instantiate_initial_conditions(model, parameter_values) #, system::PSY.System)
     #TODO: SolvePowerFlow here for eg_d, eg_q and others if needed.
     _initial_guess = [
-        1.0,    #eg_d
-        0.0,    #eg_q
-        0.5,    #is_d
-        0,      #is_q
-        0.5,    #ig_d
-        0,      #ig_q
-        0.5,
-        0.0,
-        0.0,    #ξ_d
-        0.0,    #ξ_q
-        0.0,    #γ_d
-        0.0,    #γ_q
+        0.0,    #il_r
+        0.0,    #il_i
+        1.0,    #vg_from_r
+        0.0,    #vg_from i
+        0.95,   #ef_d
+        -0.1,   #ef_q
+        0.5,    #ic_d
+        0.0,    #ic_q
+        0.49,   #if_d
+        -0.1,   #if_q
+        0.0015, #ξ_d
+        -0.07,  #ξ_q
+        0.05,    #γ_d
+        -0.001,    #γ_q
+        0.2,    #θ
+        1.0,    #ω
+        0.025,   #qf
     ]
     _initial_conditions = solve_steady_state(_initial_guess, parameter_values)
     initial_conditions = Array{Pair}(undef, length(_initial_conditions))
