@@ -9,7 +9,7 @@ include(joinpath(pwd(), "data","make_data.jl"))
 
 # Returns Generic ODE system
 model = get_model()
-ode_prob = instantiate_model(model, (0.0, 0.1), omib_sys)
+ode_prob = instantiate_model(model, (0.0, 0.1))
 sol1 = solve(ode_prob, Rosenbrock23())
 plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
 
