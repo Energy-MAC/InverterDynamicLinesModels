@@ -39,7 +39,7 @@ function instantiate_initial_conditions(model, parameter_values) #, system::PSY.
     ]
     _initial_conditions = solve_steady_state(_initial_guess, parameter_values)
     initial_conditions = Array{Pair}(undef, length(_initial_conditions))
-    for (ix, val) in enumerate(_initial_guess)
+    for (ix, val) in enumerate(_initial_conditions)
         initial_conditions[ix] = MTK.states(model)[ix] => val
     end
     return initial_conditions
