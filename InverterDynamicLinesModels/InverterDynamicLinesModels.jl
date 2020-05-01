@@ -8,4 +8,5 @@ const PSY = PowerSystems
 
 include("utils/parameters.jl")
 include("utils/initial_conditions.jl")
+include("utils/jacobian.jl")
 include("model.jl")
