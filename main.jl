@@ -1,6 +1,6 @@
-#using OrdinaryDiffEq #Gets the solvers
+using OrdinaryDiffEq #Gets the solvers
 using PowerSystems
-#using Plots
+using Plots
 
 include(joinpath(pwd(), "InverterDynamicLinesModels", "InverterDynamicLinesModels.jl"))
 # Only need to run this line to re-generate the system data
@@ -8,18 +8,18 @@ include(joinpath(pwd(), "InverterDynamicLinesModels", "InverterDynamicLinesModel
 # Load Data with PF solution from file
 omib_sys = System(joinpath(pwd(), "data", "OMIB_inverter.json"))
 
-# Returns Generic ODE system and solves
-ode_prob = instantiate_ode(omib_sys; tspan = (0.0, 5))
-#sol1 = solve(ode_prob, Rosenbrock23())
-#plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
-
-jac = instantiate_jacobian(omib_sys)
-_parameter_values = instantiate_parameters(get_nonlinear_system(), omib_sys)
-parameter_values = [x.second for x in _parameter_values]
-jac(ode_prob.u0, parameter_values)
-
+_parameter_values = instantiate_parameters(omib_sys)
 M = instantiate_model(omib_sys)
 u0 = M(_parameter_values)
+jac = instantiate_jacobian(M)
+jac(M)
+
+# Returns Generic ODE system and solves
+ode_prob = instantiate_ode(omib_sys; tspan = (0.0, 5))
+ode_prob = instantiate_ode(M; tspan = (0.0, 5))
+sol1 = solve(ode_prob, Rosenbrock23())
+plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
+
 #=
 
 parameters.pl = 0.6;
