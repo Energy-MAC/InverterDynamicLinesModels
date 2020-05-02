@@ -1,29 +1,27 @@
-using OrdinaryDiffEq #Gets the solvers
+#using OrdinaryDiffEq #Gets the solvers
 using PowerSystems
-using Plots
+#using Plots
 
 include(joinpath(pwd(), "InverterDynamicLinesModels", "InverterDynamicLinesModels.jl"))
-# Not working due to de-serializatio of OuterControl
-#omib_sys = System(joinpath(pwd(), "data","OMIB_inverter.json"))
-include(joinpath(pwd(), "data","make_data.jl"))
+# Only need to run this line to re-generate the system data
+#include(joinpath(pwd(), "data","make_data.jl"))
+# Load Data with PF solution from file
+omib_sys = System(joinpath(pwd(), "data", "OMIB_inverter.json"))
 
-# Returns Generic ODE system
-model = get_model()
-ode_prob = instantiate_model(model, (0.0, 0.1))
-sol1 = solve(ode_prob, Rosenbrock23())
-plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
+# Returns Generic ODE system and solves
+ode_prob = instantiate_ode(omib_sys; tspan = (0.0, 5))
+#sol1 = solve(ode_prob, Rosenbrock23())
+#plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
 
-# WIP functions
-_parameter_values = instantiate_parameters(model) #, system)
+jac = instantiate_jacobian(omib_sys)
+_parameter_values = instantiate_parameters(get_nonlinear_system(), omib_sys)
 parameter_values = [x.second for x in _parameter_values]
-jac = get_jacobian_function();
+jac(ode_prob.u0, parameter_values)
 
-param_eval = (out, params) -> jac(out, ode_prob.u0, params)
-n= length(ode_prob.u0)
-J = zeros(n, n)
-param_eval(J, parameter_values)
-
+M = instantiate_model(omib_sys)
+u0 = M(_parameter_values)
 #=
+
 parameters.pl = 0.6;
 
 tspan = (0.0,1)
