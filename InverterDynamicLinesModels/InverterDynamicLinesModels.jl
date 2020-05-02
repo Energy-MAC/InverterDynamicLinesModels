@@ -11,7 +11,6 @@ const PSY = PowerSystems
 include("model.jl")
 include("utils/parameters.jl")
 include("utils/operating_point.jl")
-include("utils/initial_conditions.jl")
 include("utils/ode_model.jl")
 include("utils/jacobian.jl")
 include("utils/print.jl")
