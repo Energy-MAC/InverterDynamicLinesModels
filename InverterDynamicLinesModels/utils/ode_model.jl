@@ -4,13 +4,7 @@ function instantiate_ode(M::ModelOperatingPoint; tspan::Tuple)
     for (ix, val) in enumerate(M.u0)
         initial_conditions[ix] = MTK.states(model)[ix] => val
     end
-    return DiffEqBase.ODEProblem(
-        model,
-        initial_conditions,
-        tspan,
-        M.parameters,
-        jac = true,
-    )
+    return DiffEqBase.ODEProblem(model, initial_conditions, tspan, M.parameters, jac = true)
 end
 
 function instantiate_ode(system::PSY.System; tspan::Tuple, kwargs...)

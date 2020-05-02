@@ -2,16 +2,17 @@ using PowerSystems
 using NLsolve
 const PSY = PowerSystems
 
-omib_file_dir= joinpath(pwd(), "data/OMIB.raw")
-omib_sys = System(PowerModelsData(omib_file_dir), time_series_in_memory = true, runchecks=false)
+omib_file_dir = joinpath(pwd(), "data/OMIB.raw")
+omib_sys =
+    System(PowerModelsData(omib_file_dir), time_series_in_memory = true, runchecks = false)
 slack_bus = get_components_by_name(Component, omib_sys, "BUS 1")[1]
 inf_source = Source(
     name = "InfBus",
     available = true,
-    activepower = -0.,
+    activepower = -0.0,
     reactivepower = 0.0,
     bus = slack_bus,
-    X_th = 0.000005
+    X_th = 0.000005,
 )
 PSY.add_component!(omib_sys, inf_source)
 
@@ -36,21 +37,12 @@ add_component!(omib_sys, battery)
 res = solve_powerflow!(omib_sys, nlsolve)
 
 ###### Converter Data ######
-converter() = AverageConverter(
-    v_rated = 690.0,
-    s_rated = 2.75,
-)
+converter() = AverageConverter(v_rated = 690.0, s_rated = 2.75)
 ###### DC Source Data ######
 dc_source() = FixedDCSource(voltage = 600.0) #Not in the original data, guessed.
 
 ###### Filter Data ######
-filter() = LCLFilter(
-    lf = 0.08,
-    rf = 0.003,
-    cf = 0.074,
-    lg = 0.2,
-    rg = 0.01,
-)
+filter() = LCLFilter(lf = 0.08, rf = 0.003, cf = 0.074, lg = 0.2, rg = 0.01)
 
 ###### PLL Data ######
 pll() = KauraPLL(
@@ -62,18 +54,10 @@ pll() = KauraPLL(
 ###### Outer Control ######
 function outer_control()
     function virtual_inertia()
-        return VirtualInertia(
-        Ta = 2.0,
-        kd = 400.0,
-        kω = 20.0,
-        ωb = 2 * pi * 50.0,
-    )
+        return VirtualInertia(Ta = 2.0, kd = 400.0, kω = 20.0, ωb = 2 * pi * 50.0)
     end
     function reactive_droop()
-        return ReactivePowerDroop(
-        kq = 0.2,
-        ωf = 1000.0,
-    )
+        return ReactivePowerDroop(kq = 0.2, ωf = 1000.0)
     end
     return OuterControl(virtual_inertia(), reactive_droop())
 end
@@ -93,21 +77,21 @@ inner_control() = CurrentControl(
 )
 
 inverter = PSY.DynamicInverter(
-        number = 1,
-        name = "VSM",
-        bus = get_bus(battery),
-        ω_ref = 1.0,
-        V_ref = get_voltage(get_bus(battery)),
-        P_ref = get_activepower(battery),
-        Q_ref = get_reactivepower(battery),
-        MVABase = get_rating(battery),
-        converter = converter(),
-        outer_control = outer_control(),
-        inner_control = inner_control(),
-        dc_source = dc_source(),
-        freq_estimator = pll(),
-        filter = filter(),
-    )
+    number = 1,
+    name = "VSM",
+    bus = get_bus(battery),
+    ω_ref = 1.0,
+    V_ref = get_voltage(get_bus(battery)),
+    P_ref = get_activepower(battery),
+    Q_ref = get_reactivepower(battery),
+    MVABase = get_rating(battery),
+    converter = converter(),
+    outer_control = outer_control(),
+    inner_control = inner_control(),
+    dc_source = dc_source(),
+    freq_estimator = pll(),
+    filter = filter(),
+)
 
 add_component!(omib_sys, inverter)
 to_json(omib_sys, joinpath(pwd(), "data/OMIB_inverter.json"))
