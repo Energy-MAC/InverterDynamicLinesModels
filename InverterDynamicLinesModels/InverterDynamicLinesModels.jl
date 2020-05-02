@@ -3,11 +3,15 @@ import DiffEqBase
 import PowerSystems
 import NLsolve
 import LinearAlgebra
+import SparseArrays
 
 const MTK = ModelingToolkit
 const PSY = PowerSystems
 
-include("utils/parameters.jl")
-include("utils/initial_conditions.jl")
-include("utils/jacobian.jl")
 include("model.jl")
+include("utils/parameters.jl")
+include("utils/operating_point.jl")
+include("utils/initial_conditions.jl")
+include("utils/ode_model.jl")
+include("utils/jacobian.jl")
+include("utils/print.jl")
