@@ -114,10 +114,10 @@ function get_internal_model(::Nothing)
     v_mq = kpc * (i_hat_q - ic_q) + kic * γ_q + ω * lf * ic_d
     p_inv = v_md * ic_d + v_mq * ic_q
     q_inv = -v_md * ic_q + v_mq * ic_d
-    if_r = (Sinv/Sb) * (cos(θ)*if_d - sin(θ)*if_q)
-    if_i = (Sinv/Sb) * (sin(θ)*if_d + cos(θ)*if_q)
-    vg_from_d = cos(θ)*vg_from_r + sin(θ)*vg_from_i
-    vg_from_q = -sin(θ)*vg_from_r + cos(θ)*vg_from_i
+    if_r = (Sinv / Sb) * (cos(θ) * if_d - sin(θ) * if_q)
+    if_i = (Sinv / Sb) * (sin(θ) * if_d + cos(θ) * if_q)
+    vg_from_d = cos(θ) * vg_from_r + sin(θ) * vg_from_i
+    vg_from_q = -sin(θ) * vg_from_r + cos(θ) * vg_from_i
 
     model_rhs = [
         # Line Equations
@@ -126,9 +126,9 @@ function get_internal_model(::Nothing)
         #𝜕il_i/𝜕t
         (Ωb / lg) * ((vg_from_i - vg_to_i) - (rg * il_i + lg * ω_sys * il_r))
         #𝜕vg_from_r/𝜕t
-        (Ωb / (2*cg) ) * (if_r - il_r) + Ωb * ω_sys * vg_from_i
+        (Ωb / (2 * cg)) * (if_r - il_r) + Ωb * ω_sys * vg_from_i
         ##𝜕vg_from_i/𝜕t
-        (Ωb / (2*cg) ) * (if_i - il_i) - Ωb * ω_sys * vg_from_r
+        (Ωb / (2 * cg)) * (if_i - il_i) - Ωb * ω_sys * vg_from_r
         #Filter Equations
         #𝜕ef_d/𝜕t
         Ωb / cf * (ic_d - if_d) + Ωb * ω_sys * ef_q
@@ -153,9 +153,9 @@ function get_internal_model(::Nothing)
         i_hat_q - ic_q
         ### Outer Control Equations
         #𝜕θ/𝜕t
-        Ωb*(ω - ω_sys)
+        Ωb * (ω - ω_sys)
         #𝜕ω/𝜕t
-        (1/M) * ( (pʳ - pm) + kω * (ωʳ - ω) )
+        (1 / M) * ((pʳ - pm) + kω * (ωʳ - ω))
         #𝜕qf/𝜕t
         ωf * (qm - qf)
     ]
@@ -184,23 +184,16 @@ function get_internal_model(::Nothing)
     return model_lhs, model_rhs, states, variables, params
 end
 
-function get_model()
+function get_ode_system()
     model_lhs, model_rhs, states, _, params = get_internal_model(nothing)
     t = params[1]
-    return MTK.ODESystem(model_lhs .~ model_rhs, t, [states...], [params...][2:end])
+    _eqs = model_lhs .~ model_rhs
+    return MTK.ODESystem(_eqs, t, [states...], [params...][2:end])
 end
 
-function instantiate_model(
-    model,
-    tspan::Tuple,
-)
-    parameter_values = instantiate_parameters(model) #, system)
-    initial_conditions = instantiate_initial_conditions(model, parameter_values) #, system)
-    return DiffEqBase.ODEProblem(
-        model,
-        initial_conditions,
-        tspan,
-        parameter_values,
-        jac = true,
-    )
+function get_nonlinear_system()
+    _, model_rhs, _, variables, params = get_internal_model(nothing)
+    variable_count = length(variables)
+    _eqs = zeros(length(model_rhs)) .~ model_rhs
+    return MTK.NonlinearSystem(_eqs, [variables...], [params...][2:end])
 end
