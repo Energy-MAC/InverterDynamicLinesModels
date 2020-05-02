@@ -19,13 +19,11 @@ function instantiate_jacobian(M::ModelOperatingPoint)
     param_eval = (out, params) -> jac(out, M.u0, params)
     n = length(M.u0)
     J = zeros(n, n)
-    _parameter_values = [x.second for x in M.parameters]
-    param_eval(J, _parameter_values)
+    param_eval(J, M.parameters)
     return ModelJacobian(jac_eval, J)
 end
 
 function (J::ModelJacobian)(M::ModelOperatingPoint)
-    _parameters = [x.second for x in M.parameters]
-    J.J_func(J.J_Matrix, M.u0, _parameters)
+    J.J_func(J.J_Matrix, M.u0, M.parameters)
     return J.J_Matrix
 end
