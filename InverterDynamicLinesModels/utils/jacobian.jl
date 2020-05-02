@@ -13,17 +13,19 @@ function get_jacobian_function()
     return nlsys_jac
 end
 
-function instantiate_jacobian(M::ModelOperatingPoint; kwargs...)
+function instantiate_jacobian(M::ModelOperatingPoint)
     jac = get_jacobian_function()
     jac_eval = (out, u0, params) -> jac(out, u0, params)
     param_eval = (out, params) -> jac(out, M.u0, params)
     n = length(M.u0)
     J = zeros(n, n)
-    param_eval(J, parameter_values)
+    _parameter_values = [x.second for x in M.parameters]
+    param_eval(J, _parameter_values)
     return ModelJacobian(jac_eval, J)
 end
 
-function (J::ModelJacobian)(M::ModelOperatingPoint, parameters)
-    J.J_func(J.J_Matrix, M.u0, parameters)
+function (J::ModelJacobian)(M::ModelOperatingPoint)
+    _parameters = [x.second for x in M.parameters]
+    J.J_func(J.J_Matrix, M.u0, _parameters)
     return J.J_Matrix
 end
