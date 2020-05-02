@@ -1,7 +1,7 @@
 struct ModelOperatingPoint
     sys_func::Function
     u0::Vector{Float64}
-    parameters::Vector
+    parameters::Vector{Float64}
 end
 
 function instantiate_model(system::PSY.System; solve_powerflow = false)
@@ -38,19 +38,24 @@ function instantiate_model(system::PSY.System; solve_powerflow = false)
         1.0,    #ω
         0.025,   #qf
     ]
-    parameter_values = instantiate_parameters(system, nl_sys)
+    parameter_mapping = instantiate_parameters(system, nl_sys)
+    parameter_values = [x.second for x in parameter_mapping]
     M = ModelOperatingPoint(sys_f, initial_guess, parameter_values)
     M()
     return M
 end
 
-function (M::ModelOperatingPoint)(parameters::Vector)
-    _parameter_values = [x.second for x in parameters]
-    res = NLsolve.nlsolve((out, x) -> M.sys_func(out, x, _parameter_values), M.u0)
+function (M::ModelOperatingPoint)(parameters::Vector{Float64})
+    res = NLsolve.nlsolve((out, x) -> M.sys_func(out, x, parameters), M.u0)
     !NLsolve.converged(res) && @error("NLsolve failed to converge")
     M.parameters .= parameters
     M.u0 .= res.zero
     return M.u0
+end
+
+function (M::ModelOperatingPoint)(parameters::Array{Pair{Variable{ModelingToolkit.Parameter{Number}},Float64},1})
+    parameter_values = [x.second for x in parameters]
+    return M(parameter_values)
 end
 
 (M::ModelOperatingPoint)() = M(M.parameters)
