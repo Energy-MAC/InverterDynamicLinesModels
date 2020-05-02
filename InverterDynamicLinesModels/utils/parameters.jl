@@ -1,5 +1,5 @@
 
-function instantiate_parameters(model, system::PSY.System)
+function instantiate_parameters(system::PSY.System, model = get_nonlinear_system())
     # TODO: Automate better with PSY getter functions
     # AC side quantities
     # AC side quantities
