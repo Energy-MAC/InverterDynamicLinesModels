@@ -53,7 +53,9 @@ function (M::ModelOperatingPoint)(parameters::Vector{Float64})
     return M.u0
 end
 
-function (M::ModelOperatingPoint)(parameters::Array{Pair{Variable{ModelingToolkit.Parameter{Number}},Float64},1})
+function (M::ModelOperatingPoint)(
+    parameters::Array{Pair{Variable{ModelingToolkit.Parameter{Number}}, Float64}, 1},
+)
     parameter_values = [x.second for x in parameters]
     return M(parameter_values)
 end

@@ -2,7 +2,6 @@ using OrdinaryDiffEq #Gets the solvers
 using PowerSystems
 using Plots
 
-
 include(joinpath(pwd(), "InverterDynamicLinesModels", "InverterDynamicLinesModels.jl"))
 # Only need to run this line to re-generate the system data
 #include(joinpath(pwd(), "data","make_data.jl"))
