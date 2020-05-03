@@ -44,10 +44,10 @@ function instantiate_parameters(system::PSY.System, model = get_nonlinear_system
     # Base Power
     Sinv = MTK.parameters(model) # Sampling time = parameters(model)
 
-    fb = PSY.get_frequency(system) # Get using PSY.
+    fb = 50.0 # Get using PSY. Not updating json file.
     _Ωb = 2 * pi * fb
-    _Sb = 100.0e6 # Get using PSY
-    _Sinv = 2.75e6 # Get using PSY
+    _Sb = 100.0 # Get using PSY
+    _Sinv = 2.75 # Get using PSY
 
     p = [
         Ωb => _Ωb # Get using PSY
