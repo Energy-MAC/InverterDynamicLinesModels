@@ -1,5 +1,5 @@
 
-function instantiate_parameters(model) #, system::PSY.System)
+function instantiate_parameters(system::PSY.System, model = get_nonlinear_system())
     # TODO: Automate better with PSY getter functions
     # AC side quantities
     # AC side quantities
@@ -44,7 +44,7 @@ function instantiate_parameters(model) #, system::PSY.System)
     # Base Power
     Sinv = MTK.parameters(model) # Sampling time = parameters(model)
 
-    fb = 50 # Get using PSY.
+    fb = PSY.get_frequency(system) # Get using PSY.
     _Ωb = 2 * pi * fb
     _Sb = 100.0e6 # Get using PSY
     _Sinv = 2.75e6 # Get using PSY
