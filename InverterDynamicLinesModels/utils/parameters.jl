@@ -55,7 +55,7 @@ function instantiate_parameters(system::PSY.System, model = get_nonlinear_system
         Sb => _Sb # Get using PSY
         # Line impedance
         lg => 0.075
-        rg => 0.0
+        rg => 0.01
         cg => 0.001
         # Infinite bus voltage
         vg_to_r => 1.0
@@ -70,8 +70,8 @@ function instantiate_parameters(system::PSY.System, model = get_nonlinear_system
         cf => 0.074 # Get using PSY
         rf => 0.003 # Get using PSY
         # Transformer Parameters
-        rt => 0.01 # Get using PSY
-        lt => 0.2  # Get using PSY
+        rt => 0.2 # Get using PSY
+        lt => 0.075  # Get using PSY
         # Outer Control Loops
         # Active Power Droop Control
         M => 2.0
