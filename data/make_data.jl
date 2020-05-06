@@ -94,4 +94,4 @@ inverter = PSY.DynamicInverter(
 )
 
 add_component!(omib_sys, inverter)
-to_json(omib_sys, joinpath(pwd(), "data/OMIB_inverter.json"))
+to_json(omib_sys, "data/OMIB_inverter.json")
