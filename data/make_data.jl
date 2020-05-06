@@ -4,7 +4,7 @@ const PSY = PowerSystems
 
 omib_file_dir = joinpath(pwd(), "data/OMIB.raw")
 omib_sys =
-    System(PowerModelsData(omib_file_dir), time_series_in_memory = true, runchecks = false)
+    System(PowerModelsData(omib_file_dir), runchecks = false)
 slack_bus = get_components_by_name(Component, omib_sys, "BUS 1")[1]
 inf_source = Source(
     name = "InfBus",
@@ -94,4 +94,4 @@ inverter = PSY.DynamicInverter(
 )
 
 add_component!(omib_sys, inverter)
-to_json(omib_sys, joinpath(pwd(), "data/OMIB_inverter.json"))
+to_json(omib_sys, "data/OMIB_inverter.json")
