@@ -46,4 +46,3 @@ function (S::SmallSignal)(M::ModelOperatingPoint, J::ModelJacobian)
            S.max_eigenvalue[:loc] = ix
         end
     end
-end

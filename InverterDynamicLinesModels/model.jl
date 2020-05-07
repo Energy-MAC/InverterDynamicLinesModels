@@ -109,9 +109,9 @@ function get_internal_model(::Nothing)
     v_iref_d = v_hat - rv * if_d + ω * lv * if_q # Inner voltage controller d PI
     v_iref_q = -rv * if_q - ω * lv * if_d # Inner voltage controller q PI
     i_hat_d = kpv * (v_iref_d - ef_d) + kiv * ξ_d - ω * cf * ef_q + kffi * if_d # Inner current controller d PI
-    i_hat_q = kpv * (v_iref_q - ef_q) + kiv * ξ_q + ω * cf * ef_d # Inner current controller q PI
-    v_md = kpc * (i_hat_d - ic_d) + kic * γ_d - ω * lf * ic_q
-    v_mq = kpc * (i_hat_q - ic_q) + kic * γ_q + ω * lf * ic_d
+    i_hat_q = kpv * (v_iref_q - ef_q) + kiv * ξ_q + ω * cf * ef_d + kffi * if_q # Inner current controller q PI
+    v_md = kpc * (i_hat_d - ic_d) + kic * γ_d - ω * lf * ic_q + kffv * ef_d
+    v_mq = kpc * (i_hat_q - ic_q) + kic * γ_q + ω * lf * ic_d + kffv * ef_q
     p_inv = v_md * ic_d + v_mq * ic_q
     q_inv = -v_md * ic_q + v_mq * ic_d
     if_r = (Sinv / Sb) * (cos(θ) * if_d - sin(θ) * if_q)
@@ -126,22 +126,22 @@ function get_internal_model(::Nothing)
         #𝜕il_i/𝜕t
         (Ωb / lg) * ((vg_from_i - vg_to_i) - (rg * il_i + lg * ω_sys * il_r))
         #𝜕vg_from_r/𝜕t
-        (Ωb / (2 * cg)) * (if_r - il_r) + Ωb * ω_sys * vg_from_i
+        (Ωb / cg) * (if_r - il_r) + Ωb * ω_sys * vg_from_i
         ##𝜕vg_from_i/𝜕t
-        (Ωb / (2 * cg)) * (if_i - il_i) - Ωb * ω_sys * vg_from_r
+        (Ωb / cg) * (if_i - il_i) - Ωb * ω_sys * vg_from_r
         #Filter Equations
         #𝜕ef_d/𝜕t
-        Ωb / cf * (ic_d - if_d) + Ωb * ω_sys * ef_q
+        (Ωb / cf) * (ic_d - if_d) + Ωb * ω_sys * ef_q
         #𝜕ef_q/𝜕t
-        Ωb / cf * (ic_q - if_q) - Ωb * ω_sys * ef_d
+        (Ωb / cf) * (ic_q - if_q) - Ωb * ω_sys * ef_d
         #𝜕ic_d/𝜕t
-        (Ωb / lf) * (v_md - ef_d) - Ωb * rf / lf * ic_d + Ωb * ω_sys * ic_q
+        (Ωb / lf) * (v_md - ef_d) - Ωb * (rf / lf) * ic_d + Ωb * ω_sys * ic_q
         #𝜕ic_q/𝜕t
-        (Ωb / lf) * (v_mq - ef_q) - Ωb * rf / lf * ic_q - Ωb * ω_sys * ic_d
+        (Ωb / lf) * (v_mq - ef_q) - Ωb * (rf / lf) * ic_q - Ωb * ω_sys * ic_d
         #𝜕if_d/𝜕t
-        (Ωb / lt) * (ef_d - vg_from_d) - Ωb * rt / lt * if_d + Ωb * ω_sys * if_q
+        (Ωb / lt) * (ef_d - vg_from_d) - Ωb * (rt / lt) * if_d + Ωb * ω_sys * if_q
         #𝜕if_q/𝜕t
-        (Ωb / lt) * (ef_q - vg_from_q) - Ωb * rt / lt * if_q - Ωb * ω_sys * if_d
+        (Ωb / lt) * (ef_q - vg_from_q) - Ωb * (rt / lt) * if_q - Ωb * ω_sys * if_d
         ### Inner Control Equations
         #𝜕ξ_d/𝜕t
         v_iref_d - ef_d
