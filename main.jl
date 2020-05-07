@@ -1,6 +1,6 @@
 using OrdinaryDiffEq #Gets the solvers
 using PowerSystems
-using Plots
+#using Plots
 
 include(joinpath(pwd(), "InverterDynamicLinesModels", "InverterDynamicLinesModels.jl"))
 # Only need to run this line to re-generate the system data
@@ -14,6 +14,9 @@ parameter_mapping = instantiate_parameters(omib_sys)
 M = instantiate_model(omib_sys)
 u0 = M(parameter_mapping) # works as a test, not really necessary to call
 jac = instantiate_jacobian(M)
+ss = instantiate_small_signal(M, jac)
+ss(M, jac)
+
 
 # Test of parameter sweep for the gain of the integral gain of voltage
 println("$(parameter_mapping[24])")
