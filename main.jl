@@ -10,32 +10,31 @@ include(joinpath(pwd(), "InverterDynamicLinesModels", "InverterDynamicLinesModel
 omib_sys = System(joinpath(pwd(), "data", "OMIB_inverter.json"))
 
 # Instantiate analysis objects
-parameter_mapping = instantiate_parameters(omib_sys)
-M = instantiate_model(omib_sys)
+parameter_mapping = instantiate_parameters_vsm(omib_sys)
+M = instantiate_model_vsm(omib_sys)
 u0 = M(parameter_mapping) # works as a test, not really necessary to call
-jac = instantiate_jacobian(M)
+jac = instantiate_jacobian_vsm(M)
 ss = instantiate_small_signal(M, jac)
 ss(M, jac)
 
 
 # Test of parameter sweep for the gain of the integral gain of voltage
 println("$(parameter_mapping[24])")
-param_space = 100:10:750
-res = Vector{Float64}(undef, length(param_space))
-parameter_values = [x.second for x in parameter_mapping]
-for (ix, value) in enumerate(param_space)
-    parameter_values[24] = value
+param_space = range(0.1,10000, length=5000)
+res = Vector{Number}(undef, 5000)
+for (i, val) in enumerate(param_space)
+    parameter_values[24] = val
     M(parameter_values)
-    res[ix] = max_eigenvalue(M, jac)
+    ss(M, jac)
+    res[i] = ss.eigen_vals[end]
 end
-
 plot(param_space, res)
 
 # Returns Generic ODE system and solves
-ode_prob = instantiate_ode(omib_sys; tspan = (0.0, 5))
-ode_prob = instantiate_ode(M; tspan = (0.0, 5))
-sol1 = solve(ode_prob, Rosenbrock23())
-plot(sol1, vars = (0, 13))
+#ode_prob = instantiate_ode(omib_sys; tspan = (0.0, 5))
+#ode_prob = instantiate_ode(M; tspan = (0.0, 5))
+#sol1 = solve(ode_prob, Rosenbrock23())
+#plot(sol1, vars = (0, 13))
 
 #=
 
