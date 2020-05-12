@@ -8,7 +8,9 @@ import SparseArrays
 const MTK = ModelingToolkit
 const PSY = PowerSystems
 
-include("model.jl")
+include("models/vsm.jl")
+include("models/droop.jl")
+include("models/vsm_alglines.jl")
 include("utils/parameters.jl")
 include("utils/operating_point.jl")
 include("utils/ode_model.jl")
