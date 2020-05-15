@@ -1,4 +1,4 @@
-function get_internal_model(::Nothing)
+function get_internal_model_droop(::Nothing)
     # Model Parameters
     params = MTK.@parameters begin
         t
@@ -25,9 +25,7 @@ function get_internal_model(::Nothing)
         rt      # Transformer resistance
         lt      # Transformer reactance
         # OuterControl Loops
-        M    # Virtual Inertia Constant
-        kd   # Active Power PLL Frequency Damping
-        kω   # Active Power Frequency Setpoint Damping
+        kp   # Active Power Droop
         kq   # Reactive Power Droop
         ωf   # Cut-Off frequency Low-Pass Filter (both Active and Reactive)
         # SRF Voltage Control
@@ -70,8 +68,8 @@ function get_internal_model(::Nothing)
         γ_q(t)  #d-axis integrator term for inner AC/DC PI controller
         # VSM Control States
         θ(t)    # Outer Control Angle
-        ω(t)    # Outer Control Frequency
-        qf(t)          # Filtered Reactive Power
+        pf(t)    # Filtered Active Power 
+        qf(t)    # Filtered Reactive Power
     end
 
     # Definition of the variables for non-linear system. Requires https://github.com/SciML/ModelingToolkit.jl/issues/322 to eliminate
@@ -97,14 +95,14 @@ function get_internal_model(::Nothing)
         γ_q         # d-axis integrator term for inner AC/DC PI controller
         # VSM Control States
         θ           # Outer Control Angle
-        ω           # Outer Control Frequency
+        pf          # Filtered Active Power
         qf          # Filtered Reactive Power
     end
 
     # Expressions
     pm = ef_d * if_d + ef_q * if_q  # AC Active Power into the filter
     qm = -ef_d * if_q + ef_q * if_d # AC Reactive Power into the filter
-    #ω_a = ωʳ + Dp * (pʳ - pf)  # Active Power Droop: Not applicable in VSM
+    ω = ωʳ + kp * (pʳ - pf)  # Active Power Droop: Not applicable in VSM
     v_hat = vʳ + kq * (qʳ - qf) # Reactive Power Droop
     v_iref_d = v_hat - rv * if_d + ω * lv * if_q # Inner voltage controller d PI
     v_iref_q = -rv * if_q - ω * lv * if_d # Inner voltage controller q PI
@@ -154,8 +152,8 @@ function get_internal_model(::Nothing)
         ### Outer Control Equations
         #𝜕θ/𝜕t
         Ωb * (ω - ω_sys)
-        #𝜕ω/𝜕t
-        (1 / M) * ((pʳ - pm) + kω * (ωʳ - ω))
+        #𝜕pf/𝜕t
+        ωf * (pm - pf)
         #𝜕qf/𝜕t
         ωf * (qm - qf)
     ]
@@ -184,15 +182,15 @@ function get_internal_model(::Nothing)
     return model_lhs, model_rhs, states, variables, params
 end
 
-function get_ode_system()
-    model_lhs, model_rhs, states, _, params = get_internal_model(nothing)
+function get_ode_system_droop()
+    model_lhs, model_rhs, states, _, params = get_internal_model_droop(nothing)
     t = params[1]
     _eqs = model_lhs .~ model_rhs
     return MTK.ODESystem(_eqs, t, [states...], [params...][2:end])
 end
 
-function get_nonlinear_system()
-    _, model_rhs, _, variables, params = get_internal_model(nothing)
+function get_nonlinear_system_droop()
+    _, model_rhs, _, variables, params = get_internal_model_droop(nothing)
     variable_count = length(variables)
     _eqs = zeros(length(model_rhs)) .~ model_rhs
     return MTK.NonlinearSystem(_eqs, [variables...], [params...][2:end])
