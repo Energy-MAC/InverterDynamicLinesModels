@@ -41,7 +41,7 @@ function instantiate_parameters(::Type{VirtualInnertia}, system::PSY.System)
     rv,
     lv,
     # Base Power
-    Sinv = MTK.parameters(get_nonlinear_system(VirtualInnertia)) # Sampling time = parameters(model)
+    Sinv = MTK.parameters(get_nonlinear_system(VirtualInnertia, DynamicLines)) # Sampling time = parameters(model)
 
     fb = PowerSystems.get_frequency(system) # Get using PSY. Not updating json file.
     _Ωb = 2 * pi * fb
@@ -96,7 +96,6 @@ function instantiate_parameters(::Type{VirtualInnertia}, system::PSY.System)
     return p
 end
 
-
 function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
     # TODO: Automate better with PSY getter functions
     # AC side quantities
@@ -138,7 +137,7 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
     rv,
     lv,
     # Base Power
-    Sinv = MTK.parameters(get_nonlinear_system(DroopModel)) # Sampling time = parameters(model)
+    Sinv = MTK.parameters(get_nonlinear_system(DroopModel,  DynamicLines)) # Sampling time = parameters(model)
 
     fb = PowerSystems.get_frequency(system) # Get using PSY. Not updating json file.
     _Ωb = 2 * pi * fb

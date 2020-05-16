@@ -1,6 +1,6 @@
 struct VirtualInnertia <: InverterModel end
 
-function get_internal_model(::Type{VirtualInnertia})
+function get_internal_model(::Type{VirtualInnertia}, ::Type{N}) where {N <: NetworkModel}
     # Model Parameters
     params = MTK.@parameters begin
         t

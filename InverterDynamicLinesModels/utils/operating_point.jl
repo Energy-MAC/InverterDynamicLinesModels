@@ -1,11 +1,16 @@
-struct ModelOperatingPoint{T<:InverterModel}
+struct ModelOperatingPoint{T <: InverterModel, N <: NetworkModel}
     sys_func::Function
     u0::Vector{Float64}
     parameters::Vector{Float64}
 end
 
-function instantiate_model(::Type{T}, system::PSY.System; solve_powerflow = false) where T <: InverterModel
-    nl_sys = get_nonlinear_system(T)
+function instantiate_model(
+    ::Type{T},
+    ::Type{N},
+    system::PSY.System;
+    solve_powerflow = false,
+) where {T <: InverterModel, N <: NetworkModel}
+    nl_sys = get_nonlinear_system(T, N)
     variable_count = length(states(nl_sys))
     nlsys_func = MTK.generate_function(nl_sys, expression = Val{false})[2]
     sys_f = (out, x, param) -> nlsys_func(out, x, param)
@@ -40,7 +45,7 @@ function instantiate_model(::Type{T}, system::PSY.System; solve_powerflow = fals
     ]
     parameter_mapping = instantiate_parameters(T, system)
     parameter_values = [x.second for x in parameter_mapping]
-    M = ModelOperatingPoint{T}(sys_f, initial_guess, parameter_values)
+    M = ModelOperatingPoint{T, N}(sys_f, initial_guess, parameter_values)
     M()
     return M
 end

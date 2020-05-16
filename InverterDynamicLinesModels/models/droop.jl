@@ -1,6 +1,6 @@
 struct DroopModel <: InverterModel end
 
-function get_internal_model(::Type{DroopModel})
+function get_internal_model(::Type{DroopModel}, ::Type{N}) where {N <: NetworkModel}
     # Model Parameters
     params = MTK.@parameters begin
         t
