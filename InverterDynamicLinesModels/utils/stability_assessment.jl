@@ -1,4 +1,4 @@
-struct SmallSignal
+struct SmallSignal{T<:InverterModel}
     eigen_vals::Vector{Complex{Float64}}
     R_eigen_vect::Matrix{Complex{Float64}}
     L_eigen_vect::Matrix{Complex{Float64}}
@@ -7,7 +7,7 @@ struct SmallSignal
     max_eigenvalue::Vector{Complex{Float64}}
 end
 
-function instantiate_small_signal(M::ModelOperatingPoint, J::ModelJacobian)
+function instantiate_small_signal(M::ModelOperatingPoint{T}, J::ModelJacobian{T}) where {T<:InverterModel}
     eigen_vals, R_eigen_vect = LinearAlgebra.eigen(J(M))
     L_eigen_vect = inv(R_eigen_vect)
     damping_vector = Vector{Float64}(undef, length(eigen_vals))
@@ -18,7 +18,7 @@ function instantiate_small_signal(M::ModelOperatingPoint, J::ModelJacobian)
         current_eigenvalue = real(eigen_val)
         damping_vector[ix] = -1*real(eigen_val) / sqrt(real(eigen_val)^2 + imag(eigen_val)^2)
     end
-    return SmallSignal(eigen_vals,
+    return SmallSignal{T}(eigen_vals,
                      R_eigen_vect,
                      L_eigen_vect,
                      participation_factors,
@@ -26,7 +26,7 @@ function instantiate_small_signal(M::ModelOperatingPoint, J::ModelJacobian)
                      [eigen_vals[end]])
 end
 
-function (S::SmallSignal)(M::ModelOperatingPoint, J::ModelJacobian)
+function (S::SmallSignal)(M::ModelOperatingPoint{T}, J::ModelJacobian{T}) where {T<:InverterModel}
     _J = J(M)
     S.eigen_vals .= LinearAlgebra.eigvals(_J)
     S.R_eigen_vect .= LinearAlgebra.eigvecs(_J)
