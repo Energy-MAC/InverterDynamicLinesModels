@@ -77,13 +77,8 @@ inner_control() = CurrentControl(
 )
 
 inverter = PSY.DynamicInverter(
-    number = 1,
-    name = "VSM",
-    bus = get_bus(battery),
+    static_injector = battery,
     ω_ref = 1.0,
-    V_ref = get_voltage(get_bus(battery)),
-    P_ref = get_activepower(battery),
-    Q_ref = get_reactivepower(battery),
     MVABase = get_rating(battery),
     converter = converter(),
     outer_control = outer_control(),
