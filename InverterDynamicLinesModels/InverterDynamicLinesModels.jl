@@ -8,6 +8,9 @@ import SparseArrays
 const MTK = ModelingToolkit
 const PSY = PowerSystems
 
+abstract type InverterModel end
+
+include("models/functions.jl")
 include("models/vsm.jl")
 include("models/droop.jl")
 include("utils/parameters.jl")
