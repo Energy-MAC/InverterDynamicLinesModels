@@ -1,4 +1,6 @@
-function get_internal_model_droop(::Nothing)
+struct DroopModel <: InverterModel end
+
+function get_internal_model(::Type{DroopModel})
     # Model Parameters
     params = MTK.@parameters begin
         t
@@ -68,7 +70,7 @@ function get_internal_model_droop(::Nothing)
         γ_q(t)  #d-axis integrator term for inner AC/DC PI controller
         # VSM Control States
         θ(t)    # Outer Control Angle
-        pf(t)    # Filtered Active Power 
+        pf(t)    # Filtered Active Power
         qf(t)    # Filtered Reactive Power
     end
 
@@ -180,18 +182,4 @@ function get_internal_model_droop(::Nothing)
     ]
 
     return model_lhs, model_rhs, states, variables, params
-end
-
-function get_ode_system_droop()
-    model_lhs, model_rhs, states, _, params = get_internal_model_droop(nothing)
-    t = params[1]
-    _eqs = model_lhs .~ model_rhs
-    return MTK.ODESystem(_eqs, t, [states...], [params...][2:end])
-end
-
-function get_nonlinear_system_droop()
-    _, model_rhs, _, variables, params = get_internal_model_droop(nothing)
-    variable_count = length(variables)
-    _eqs = zeros(length(model_rhs)) .~ model_rhs
-    return MTK.NonlinearSystem(_eqs, [variables...], [params...][2:end])
 end
