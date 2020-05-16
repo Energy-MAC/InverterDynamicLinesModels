@@ -11,24 +11,22 @@ omib_sys = System(joinpath(pwd(), "data", "OMIB_inverter.json"))
 
 # Instantiate analysis objects
 parameter_mapping = instantiate_parameters(VirtualInnertia, omib_sys)
-M_vsm = instantiate_model(VirtualInnertia, omib_sys)
+M_vsm = instantiate_model(VirtualInnertia, DynamicLines, omib_sys)
 u0 = M_vsm(parameter_mapping) # works as a test, not really necessary to call
 jac_vsm = instantiate_jacobian(M_vsm)
 ss_vsm = instantiate_small_signal(M_vsm, jac_vsm)
 ss_vsm(M_vsm, jac_vsm)
 
 parameter_mapping = instantiate_parameters(DroopModel, omib_sys)
-M_droop = instantiate_model(DroopModel, omib_sys)
+M_droop = instantiate_model(DroopModel, DynamicLines, omib_sys)
 u0 = M_droop(parameter_mapping) # works as a test, not really necessary to call
 jac_droop = instantiate_jacobian(M_droop)
 ss_droop = instantiate_small_signal(M_droop, jac_droop)
 ss_droop(M_droop, jac_droop)
 
-
-
 # Test of parameter sweep for the gain of the integral gain of voltage
 println("$(parameter_mapping[24])")
-param_space = range(0.1,10000, length=5000)
+param_space = range(0.1, 10000, length = 5000)
 res = Vector{Number}(undef, 5000)
 for (i, val) in enumerate(param_space)
     parameter_values[24] = val

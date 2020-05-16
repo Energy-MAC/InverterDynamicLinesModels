@@ -3,8 +3,7 @@ using NLsolve
 const PSY = PowerSystems
 
 omib_file_dir = joinpath(pwd(), "data/OMIB.raw")
-omib_sys =
-    System(PowerModelsData(omib_file_dir), runchecks = false)
+omib_sys = System(PowerModelsData(omib_file_dir), runchecks = false)
 slack_bus = get_components_by_name(Component, omib_sys, "BUS 1")[1]
 inf_source = Source(
     name = "InfBus",
