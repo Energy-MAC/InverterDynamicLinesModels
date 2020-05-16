@@ -1,4 +1,4 @@
-using OrdinaryDiffEq #Gets the solvers
+#using OrdinaryDiffEq #Gets the solvers
 using PowerSystems
 #using Plots
 
@@ -10,12 +10,20 @@ include(joinpath(pwd(), "InverterDynamicLinesModels", "InverterDynamicLinesModel
 omib_sys = System(joinpath(pwd(), "data", "OMIB_inverter.json"))
 
 # Instantiate analysis objects
-parameter_mapping = instantiate_parameters_vsm(omib_sys)
-M = instantiate_model_vsm(omib_sys)
-u0 = M(parameter_mapping) # works as a test, not really necessary to call
-jac = instantiate_jacobian_vsm(M)
-ss = instantiate_small_signal(M, jac)
-ss(M, jac)
+parameter_mapping = instantiate_parameters(VirtualInnertia, omib_sys)
+M_vsm = instantiate_model(VirtualInnertia, omib_sys)
+u0 = M_vsm(parameter_mapping) # works as a test, not really necessary to call
+jac_vsm = instantiate_jacobian(M_vsm)
+ss_vsm = instantiate_small_signal(M_vsm, jac_vsm)
+ss_vsm(M_vsm, jac_vsm)
+
+parameter_mapping = instantiate_parameters(DroopModel, omib_sys)
+M_droop = instantiate_model(DroopModel, omib_sys)
+u0 = M_droop(parameter_mapping) # works as a test, not really necessary to call
+jac_droop = instantiate_jacobian(M_droop)
+ss_droop = instantiate_small_signal(M_droop, jac_droop)
+ss_droop(M_droop, jac_droop)
+
 
 
 # Test of parameter sweep for the gain of the integral gain of voltage
