@@ -40,7 +40,7 @@ function instantiate_model(
         0.05,   #γ_d
         -0.001, #γ_q
         0.2,    #θ
-        1.0,    #ω
+        1.0,    #ω or pf
         0.025,   #qf
     ]
     parameter_mapping = instantiate_parameters(T, system)

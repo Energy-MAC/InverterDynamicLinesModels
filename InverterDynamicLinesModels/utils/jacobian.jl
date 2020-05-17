@@ -1,6 +1,7 @@
 struct ModelJacobian{T <: InverterModel, N <: NetworkModel}
     J_func::Function
     J_Matrix::Matrix{Float64}
+    J_reduced::Matrix{Float64}
 end
 
 function get_jacobian_function(
@@ -17,28 +18,72 @@ function get_jacobian_function(
 end
 
 function instantiate_jacobian(
-    M::ModelOperatingPoint{T, N},
-) where {T <: InverterModel, N <: NetworkModel}
-    jac = get_jacobian_function(T, N)
+    M::ModelOperatingPoint{T, DynamicLines},
+) where {T <: InverterModel}
+    jac = get_jacobian_function(T, DynamicLines)
     jac_eval = (out, u0, params) -> jac(out, u0, params)
     param_eval = (out, params) -> jac(out, M.u0, params)
     n = length(M.u0)
     J = zeros(n, n)
     param_eval(J, M.parameters)
-    return ModelJacobian{T, N}(jac_eval, J)
+    return ModelJacobian{T, DynamicLines}(jac_eval, J, J)
+end
+
+function instantiate_jacobian(
+    M::ModelOperatingPoint{T, StaticLines},
+) where {T <: InverterModel}
+    jac = get_jacobian_function(T, StaticLines)
+    jac_eval = (out, u0, params) -> jac(out, u0, params)
+    param_eval = (out, params) -> jac(out, M.u0, params)
+    n = length(M.u0)
+    J = zeros(n, n)
+    param_eval(J, M.parameters)
+    ix = trues(n)
+    ix[1:4] .= false
+    states_ix = ix
+    vars_ix = .!ix
+    gy = J[vars_ix, vars_ix]
+    gx = J[vars_ix, states_ix]
+    fy = J[states_ix, vars_ix]
+    fx = J[states_ix, states_ix]
+    Jred = fx - fy * inv(gy) * gx
+    return ModelJacobian{T, StaticLines}(jac_eval, J, Jred)
+end
+
+function instantiate_jacobian(
+    M::ModelOperatingPoint{T, ACStatic},
+) where {T <: InverterModel}
+    jac = get_jacobian_function(T, ACStatic)
+    jac_eval = (out, u0, params) -> jac(out, u0, params)
+    param_eval = (out, params) -> jac(out, M.u0, params)
+    n = length(M.u0)
+    J = zeros(n, n)
+    param_eval(J, M.parameters)
+    ix = trues(n)
+    ix[1:10] .= false
+    states_ix = ix
+    vars_ix = .!ix
+    gy = J[vars_ix, vars_ix]
+    gx = J[vars_ix, states_ix]
+    fy = J[states_ix, vars_ix]
+    fx = J[states_ix, states_ix]
+    Jred = fx - fy * inv(gy) * gx
+    return ModelJacobian{T, ACStatic}(jac_eval, J, Jred)
 end
 
 function (J::ModelJacobian)(
-    M::ModelOperatingPoint{T, DynamicLines},
-) where {T <: InverterModel}
+    M::ModelOperatingPoint{T, N},
+) where {T <: InverterModel, N <: NetworkModel}
     J.J_func(J.J_Matrix, M.u0, M.parameters)
     return J.J_Matrix
 end
 
+
 function (J::ModelJacobian)(
     M::ModelOperatingPoint{T, StaticLines},
 ) where {T <: InverterModel}
-    jac = J.J_func(J.J_Matrix, M.u0, M.parameters)
+    J.J_func(J.J_Matrix, M.u0, M.parameters)
+    jac = J.J_Matrix
     ix = trues(length(M.u0))
     ix[1:4] .= false
     states_ix = ix
@@ -48,31 +93,25 @@ function (J::ModelJacobian)(
     fy = jac[states_ix, vars_ix]
     fx = jac[states_ix, states_ix]
     Jred = fx - fy * inv(gy) * gx
-    J.J_Matrix .= Jred
-    return J.J_Matrix
+    J.J_reduced .= Jred
+    return J.J_reduced
 end
 
-## Do the functor to see if you want to check
-"""
-Only Lines Algebraic:
-ix = trues(length(M.u0))
-ix[1:4] .= false
-states_ix = ix
-vars_ix = .!ix
-gy = jac[vars_ix, vars_ix]
-gx = jac[vars_ix, states_ix]
-fy = jac[states_ix, vars_ix]
-fx = jac[states_ix, states_ix]
-Jred = fx - fy*inv(gy)*gx
+function (J::ModelJacobian)(
+    M::ModelOperatingPoint{T, ACStatic},
+) where {T <: InverterModel}
+    J.J_func(J.J_Matrix, M.u0, M.parameters)
+    jac = J.J_Matrix
+    ix = trues(length(M.u0))
+    ix[1:10] .= false
+    states_ix = ix
+    vars_ix = .!ix
+    gy = jac[vars_ix, vars_ix]
+    gx = jac[vars_ix, states_ix]
+    fy = jac[states_ix, vars_ix]
+    fx = jac[states_ix, states_ix]
+    Jred = fx - fy * inv(gy) * gx
+    J.J_reduced .= Jred
+    return J.J_reduced
+end
 
-Filter+Lines Algebraic:
-ix = trues(length(M.u0))
-ix[1:10] .= false
-states_ix = ix
-vars_ix = .!ix
-gy = jac[vars_ix, vars_ix]
-gx = jac[vars_ix, states_ix]
-fy = jac[states_ix, vars_ix]
-fx = jac[states_ix, states_ix]
-Jred = fx - fy*inv(gy)*gx
-"""

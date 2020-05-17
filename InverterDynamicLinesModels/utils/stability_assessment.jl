@@ -11,7 +11,8 @@ function instantiate_small_signal(
     M::ModelOperatingPoint{T},
     J::ModelJacobian{T},
 ) where {T <: InverterModel}
-    eigen_vals, R_eigen_vect = LinearAlgebra.eigen(J(M))
+    _J = J(M)
+    eigen_vals, R_eigen_vect = LinearAlgebra.eigen(_J)
     L_eigen_vect = inv(R_eigen_vect)
     damping_vector = Vector{Float64}(undef, length(eigen_vals))
     participation_factors = zeros(size(L_eigen_vect))
