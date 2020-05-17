@@ -3,8 +3,7 @@ using NLsolve
 const PSY = PowerSystems
 
 omib_file_dir = joinpath(pwd(), "data/OMIB.raw")
-omib_sys =
-    System(PowerModelsData(omib_file_dir), runchecks = false)
+omib_sys = System(PowerModelsData(omib_file_dir), runchecks = false)
 slack_bus = get_components_by_name(Component, omib_sys, "BUS 1")[1]
 inf_source = Source(
     name = "InfBus",
@@ -77,13 +76,8 @@ inner_control() = CurrentControl(
 )
 
 inverter = PSY.DynamicInverter(
-    number = 1,
-    name = "VSM",
-    bus = get_bus(battery),
+    static_injector = battery,
     ω_ref = 1.0,
-    V_ref = get_voltage(get_bus(battery)),
-    P_ref = get_activepower(battery),
-    Q_ref = get_reactivepower(battery),
     MVABase = get_rating(battery),
     converter = converter(),
     outer_control = outer_control(),

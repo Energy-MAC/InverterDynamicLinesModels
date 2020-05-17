@@ -1,4 +1,6 @@
-function get_internal_model_droop(::Nothing)
+struct DroopModel <: InverterModel end
+
+function get_internal_model(::Type{DroopModel}, ::Type{N}) where {N <: NetworkModel}
     # Model Parameters
     params = MTK.@parameters begin
         t
@@ -27,6 +29,8 @@ function get_internal_model_droop(::Nothing)
         # OuterControl Loops
         kp   # Active Power Droop
         kq   # Reactive Power Droop
+        kα   # Frequency Power Droop for Reactive Power
+        kβ   # Voltage Power Droop for Active Power
         ωf   # Cut-Off frequency Low-Pass Filter (both Active and Reactive)
         # SRF Voltage Control
         kpv     # Voltage control propotional gain
@@ -68,7 +72,7 @@ function get_internal_model_droop(::Nothing)
         γ_q(t)  #d-axis integrator term for inner AC/DC PI controller
         # VSM Control States
         θ(t)    # Outer Control Angle
-        pf(t)    # Filtered Active Power 
+        pf(t)    # Filtered Active Power
         qf(t)    # Filtered Reactive Power
     end
 
@@ -102,8 +106,8 @@ function get_internal_model_droop(::Nothing)
     # Expressions
     pm = ef_d * if_d + ef_q * if_q  # AC Active Power into the filter
     qm = -ef_d * if_q + ef_q * if_d # AC Reactive Power into the filter
-    ω = ωʳ + kp * (pʳ - pf)  # Active Power Droop: Not applicable in VSM
-    v_hat = vʳ + kq * (qʳ - qf) # Reactive Power Droop
+    ω = ωʳ + kp * (pʳ - pf) + kα * (qʳ - qf) # Active Power Droop: Not applicable in VSM
+    v_hat = vʳ + kq * (qʳ - qf) + kβ * (pʳ - pf) # Reactive Power Droop
     v_iref_d = v_hat - rv * if_d + ω * lv * if_q # Inner voltage controller d PI
     v_iref_q = -rv * if_q - ω * lv * if_d # Inner voltage controller q PI
     i_hat_d = kpv * (v_iref_d - ef_d) + kiv * ξ_d - ω * cf * ef_q + kffi * if_d # Inner current controller d PI
@@ -180,18 +184,4 @@ function get_internal_model_droop(::Nothing)
     ]
 
     return model_lhs, model_rhs, states, variables, params
-end
-
-function get_ode_system_droop()
-    model_lhs, model_rhs, states, _, params = get_internal_model_droop(nothing)
-    t = params[1]
-    _eqs = model_lhs .~ model_rhs
-    return MTK.ODESystem(_eqs, t, [states...], [params...][2:end])
-end
-
-function get_nonlinear_system_droop()
-    _, model_rhs, _, variables, params = get_internal_model_droop(nothing)
-    variable_count = length(variables)
-    _eqs = zeros(length(model_rhs)) .~ model_rhs
-    return MTK.NonlinearSystem(_eqs, [variables...], [params...][2:end])
 end

@@ -4,7 +4,13 @@ function instantiate_ode_vsm(M::ModelOperatingPoint; tspan::Tuple)
     for (ix, val) in enumerate(M.u0)
         initial_conditions[ix] = MTK.states(model)[ix] => val
     end
-    return DiffEqBase.ODEProblem(model, initial_conditions, tspan, M.parameters, jac = false)
+    return DiffEqBase.ODEProblem(
+        model,
+        initial_conditions,
+        tspan,
+        M.parameters,
+        jac = false,
+    )
 end
 
 function instantiate_ode_vsm(system::PSY.System; tspan::Tuple, kwargs...)
@@ -22,7 +28,6 @@ function instantiate_ode_vsm(system::PSY.System; tspan::Tuple, kwargs...)
         jac = true,
     )
 end
-
 
 function instantiate_ode_droop(M::ModelOperatingPoint; tspan::Tuple)
     model = get_ode_system_droop()
