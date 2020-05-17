@@ -29,6 +29,8 @@ function get_internal_model(::Type{DroopModel}, ::Type{N}) where {N <: NetworkMo
         # OuterControl Loops
         kp   # Active Power Droop
         kq   # Reactive Power Droop
+        kα   # Frequency Power Droop for Reactive Power
+        kβ   # Voltage Power Droop for Active Power
         ωf   # Cut-Off frequency Low-Pass Filter (both Active and Reactive)
         # SRF Voltage Control
         kpv     # Voltage control propotional gain
@@ -104,8 +106,8 @@ function get_internal_model(::Type{DroopModel}, ::Type{N}) where {N <: NetworkMo
     # Expressions
     pm = ef_d * if_d + ef_q * if_q  # AC Active Power into the filter
     qm = -ef_d * if_q + ef_q * if_d # AC Reactive Power into the filter
-    ω = ωʳ + kp * (pʳ - pf)  # Active Power Droop: Not applicable in VSM
-    v_hat = vʳ + kq * (qʳ - qf) # Reactive Power Droop
+    ω = ωʳ + kp * (pʳ - pf) + kα * (qʳ - qf) # Active Power Droop: Not applicable in VSM
+    v_hat = vʳ + kq * (qʳ - qf) + kβ * (pʳ - pf) # Reactive Power Droop
     v_iref_d = v_hat - rv * if_d + ω * lv * if_q # Inner voltage controller d PI
     v_iref_q = -rv * if_q - ω * lv * if_d # Inner voltage controller q PI
     i_hat_d = kpv * (v_iref_d - ef_d) + kiv * ξ_d - ω * cf * ef_q + kffi * if_d # Inner current controller d PI
