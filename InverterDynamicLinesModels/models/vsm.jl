@@ -1,6 +1,6 @@
-struct VirtualInnertia <: InverterModel end
+struct VInertia <: InverterModel end
 
-function get_internal_model(::Type{VirtualInnertia}, ::Type{N}) where {N <: NetworkModel}
+function get_internal_model(::Type{VInertia}, ::Type{N}) where {N <: NetworkModel}
     # Model Parameters
     params = MTK.@parameters begin
         t
@@ -29,7 +29,7 @@ function get_internal_model(::Type{VirtualInnertia}, ::Type{N}) where {N <: Netw
         # OuterControl Loops
         M    # Virtual Inertia Constant
         kd   # Active Power PLL Frequency Damping
-        kω   # Active Power Frequency Setpoint Damping
+        kp   # Active Power Frequency Setpoint Damping
         kq   # Reactive Power Droop
         ωf   # Cut-Off frequency Low-Pass Filter (both Active and Reactive)
         # SRF Voltage Control
@@ -157,7 +157,7 @@ function get_internal_model(::Type{VirtualInnertia}, ::Type{N}) where {N <: Netw
         #𝜕θ/𝜕t
         Ωb * (ω - ω_sys)
         #𝜕ω/𝜕t
-        (1 / M) * ((pʳ - pm) + kω * (ωʳ - ω))
+        (1 / M) * ((pʳ - pm) + (1 / kp) * (ωʳ - ω))
         #𝜕qf/𝜕t
         ωf * (qm - qf)
     ]
