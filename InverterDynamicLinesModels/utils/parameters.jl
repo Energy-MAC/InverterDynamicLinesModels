@@ -1,4 +1,4 @@
-function instantiate_parameters(::Type{VirtualInnertia}, system::PSY.System)
+function instantiate_parameters(::Type{VInertia}, system::PSY.System)
     # TODO: Automate better with PSY getter functions
     # AC side quantities
     # AC side quantities
@@ -26,7 +26,7 @@ function instantiate_parameters(::Type{VirtualInnertia}, system::PSY.System)
     # OuterControl Loops
     M,    # Virtual Inertia Constant
     kd,   # Active Power PLL Frequency Damping
-    kω,   # Active Power Frequency Setpoint Damping
+    kp,   # Active Power Frequency Setpoint Damping (1 / kω)
     kq,   # Reactive Power Droop
     ωf,   # Cut-Off frequency Low-Pass Filter (both Active and Reactive)
     # SRF Voltage Control
@@ -41,7 +41,7 @@ function instantiate_parameters(::Type{VirtualInnertia}, system::PSY.System)
     rv,
     lv,
     # Base Power
-    Sinv = MTK.parameters(get_nonlinear_system(VirtualInnertia, DynamicLines)) # Sampling time = parameters(model)
+    Sinv = MTK.parameters(get_nonlinear_system(VInertia, DynamicLines)) # Sampling time = parameters(model)
 
     fb = PowerSystems.get_frequency(system) # Get using PSY. Not updating json file.
     _Ωb = 2 * pi * fb
@@ -75,7 +75,7 @@ function instantiate_parameters(::Type{VirtualInnertia}, system::PSY.System)
         # Active Power Droop Control
         M => 0.05 #2.0
         kd => 400.0 # Get using PSY
-        kω => 50.0 #20.0
+        kp => 0.02 #20.0
         kq => 0.02
         ωf => 1000.0
         # Inner Control Loops
@@ -122,8 +122,10 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
     rt,      # Transformer resistance
     lt,      # Transformer reactance
     # OuterControl Loops
-    kp,
+    kp,   # Active Power Droop
     kq,   # Reactive Power Droop
+    kα,   # Frequency Power Droop for Reactive Power
+    kβ,   # Voltage Power Droop for Active Power
     ωf,   # Cut-Off frequency Low-Pass Filter (both Active and Reactive)
     # SRF Voltage Control
     kpv,     # Voltage control propotional gain
@@ -171,6 +173,8 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
         # Active Power Droop control
         kp => 0.02
         kq => 0.02
+        kα => 0.005
+        kβ => 0.005
         ωf => 1000.0
         # Inner Control Loops
         # SRF Voltage Control
