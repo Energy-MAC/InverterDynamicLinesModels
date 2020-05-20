@@ -52,10 +52,10 @@ function instantiate_parameters(::Type{VInertia}, system::PSY.System)
         Ωb => _Ωb # Get using PSY
         ω_sys => 1.0
         Sb => _Sb # Get using PSY
-        # Line impedance
-        lg => 0.075
-        rg => 0.01
-        cg => 0.001
+        # Line impedance: Kiwi Line 42km
+        lg => 0.0025289*42
+        rg => 0.0002429*42
+        cg => 0.0006648*42
         # Infinite bus voltage
         vg_to_r => 1.0
         vg_to_i => 0.0
@@ -91,7 +91,7 @@ function instantiate_parameters(::Type{VInertia}, system::PSY.System)
         rv => 0     # Get using PSY
         lv => 0.2   # Get using PSY
         # Base Power
-        Sinv => _Sinv
+        Sinv => _Sinv * 10
     ]
     return p
 end
@@ -150,10 +150,10 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
         Ωb => _Ωb # Get using PSY
         ω_sys => 1.0
         Sb => _Sb # Get using PSY
-        # Line impedance
-        lg => 0.075
-        rg => 0.01
-        cg => 0.001
+        # Line impedance: Kiwi Line 42km
+        lg => 0.0025289*42
+        rg => 0.0002429*42
+        cg => 0.0006648*42
         # Infinite bus voltage
         vg_to_r => 1.0
         vg_to_i => 0.0
@@ -189,7 +189,7 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
         rv => 0     # Get using PSY
         lv => 0.2   # Get using PSY
         # Base Power
-        Sinv => _Sinv
+        Sinv => _Sinv * 10
     ]
     return p
 end
