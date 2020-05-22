@@ -78,7 +78,6 @@ function (J::ModelJacobian)(
     return J.J_Matrix
 end
 
-
 function (J::ModelJacobian)(
     M::ModelOperatingPoint{T, StaticLines},
 ) where {T <: InverterModel}
@@ -97,9 +96,7 @@ function (J::ModelJacobian)(
     return J.J_reduced
 end
 
-function (J::ModelJacobian)(
-    M::ModelOperatingPoint{T, ACStatic},
-) where {T <: InverterModel}
+function (J::ModelJacobian)(M::ModelOperatingPoint{T, ACStatic}) where {T <: InverterModel}
     J.J_func(J.J_Matrix, M.u0, M.parameters)
     jac = J.J_Matrix
     ix = trues(length(M.u0))
@@ -114,4 +111,3 @@ function (J::ModelJacobian)(
     J.J_reduced .= Jred
     return J.J_reduced
 end
-

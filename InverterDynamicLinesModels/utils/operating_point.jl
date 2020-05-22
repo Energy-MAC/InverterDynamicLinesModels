@@ -27,8 +27,8 @@ function instantiate_model(
     initial_guess = [
         0.0,    #il_r
         0.0,    #il_i
-        bus_voltage * cos(bus_angle),    #vg_from_r
-        bus_voltage * sin(bus_angle),    #vg_from_r
+        1.0,    #vg_from_r
+        0.0,    #vg_from_r
         0.95,   #ef_d
         -0.1,   #ef_q
         0.5,    #ic_d

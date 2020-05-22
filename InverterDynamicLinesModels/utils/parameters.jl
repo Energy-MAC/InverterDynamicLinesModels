@@ -9,6 +9,7 @@ function instantiate_parameters(::Type{VInertia}, system::PSY.System)
     lg,      # Line reactance
     rg,      # Line resistance
     cg,      # Line capacitance
+    gg,      # Line conductance
     # Infinite bus voltage
     vg_to_r,     #real voltage to-side of line
     vg_to_i,     #imaginary voltage to-side of line
@@ -47,15 +48,31 @@ function instantiate_parameters(::Type{VInertia}, system::PSY.System)
     _Ωb = 2 * pi * fb
     _Sb = 100.0 # Get using PSY
     _Sinv = 2.75 # Get using PSY
+    _Vb = 230 #230 kV
+    Zb = _Vb^2 / _Sb
+
+    #Kiwi Line
+    _r = 29.4e-3 #r_per_km 60 Hz
+    _x = 0.306 #x_per_km 60 Hz
+    _yc = 1im * 5.4945e-6 #yc_per_km 60 Hz
+
+    l = 100 #km
+    _z = _r + 1im * _x
+    γ = sqrt(_z * _yc)
+    _Z = (_r + 1im * _x) * l * (sinh(γ * l) / (γ * l))
+    _Yc = (_yc * l) / 2 * (tanh(γ * l) / (γ * l / 2))
+    _Z_pu = _Z / Zb
+    _Yc_pu = _Yc * Zb
 
     p = [
         Ωb => _Ωb # Get using PSY
         ω_sys => 1.0
         Sb => _Sb # Get using PSY
-        # Line impedance
-        lg => 0.075
-        rg => 0.01
-        cg => 0.001
+        # Line impedance: Kiwi Line 100km
+        lg => imag(_Z_pu)
+        rg => real(_Z_pu)
+        cg => imag(_Yc_pu)
+        gg => real(_Yc_pu)
         # Infinite bus voltage
         vg_to_r => 1.0
         vg_to_i => 0.0
@@ -91,7 +108,7 @@ function instantiate_parameters(::Type{VInertia}, system::PSY.System)
         rv => 0     # Get using PSY
         lv => 0.2   # Get using PSY
         # Base Power
-        Sinv => _Sinv
+        Sinv => _Sinv * 10 #N = 10
     ]
     return p
 end
@@ -107,6 +124,7 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
     lg,      # Line reactance
     rg,      # Line resistance
     cg,      # Line capacitance
+    gg,      # Line conductance
     # Infinite bus voltage
     vg_to_r,     #real voltage to-side of line
     vg_to_i,     #imaginary voltage to-side of line
@@ -139,21 +157,40 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
     rv,
     lv,
     # Base Power
-    Sinv = MTK.parameters(get_nonlinear_system(DroopModel,  DynamicLines)) # Sampling time = parameters(model)
+    Sinv = MTK.parameters(get_nonlinear_system(DroopModel, DynamicLines)) # Sampling time = parameters(model)
 
     fb = PowerSystems.get_frequency(system) # Get using PSY. Not updating json file.
     _Ωb = 2 * pi * fb
     _Sb = 100.0 # Get using PSY
     _Sinv = 2.75 # Get using PSY
+    _Vb = 230 #230 kV
+    Zb = _Vb^2 / _Sb
+
+    #Kiwi Line
+    _r = 29.4e-3 #r_per_km 60 Hz
+    _x = 0.306 #x_per_km 60 Hz
+    _yc = 1im * 5.4945e-6 #yc_per_km 60 Hz
+
+    l = 100 #km
+    _z = _r + 1im * _x
+    γ = sqrt(_z * _yc)
+    _Z = (_r + 1im * _x) * l * (sinh(γ * l) / (γ * l))
+    _Yc = (_yc * l) / 2 * (tanh(γ * l) / (γ * l / 2))
+    _Z_pu = _Z / Zb
+    _Yc_pu = _Yc * Zb
 
     p = [
         Ωb => _Ωb # Get using PSY
         ω_sys => 1.0
         Sb => _Sb # Get using PSY
-        # Line impedance
-        lg => 0.075
-        rg => 0.01
-        cg => 0.001
+        # Line impedance: Kiwi Line 42km
+        #lg => 0.0025289*42
+        #rg => 0.0002429*42
+        #cg => 0.0006648*42
+        lg => imag(_Z_pu)
+        rg => real(_Z_pu)
+        cg => imag(_Yc_pu)
+        gg => real(_Yc_pu)
         # Infinite bus voltage
         vg_to_r => 1.0
         vg_to_i => 0.0
@@ -189,7 +226,7 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
         rv => 0     # Get using PSY
         lv => 0.2   # Get using PSY
         # Base Power
-        Sinv => _Sinv
+        Sinv => _Sinv * 10 # N = 10
     ]
     return p
 end

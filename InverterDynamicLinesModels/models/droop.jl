@@ -12,6 +12,7 @@ function get_internal_model(::Type{DroopModel}, ::Type{N}) where {N <: NetworkMo
         lg      # Line reactance
         rg      # Line resistance
         cg      # Line capacitance
+        gg      # Line conductance
         # Infinite bus voltage
         vg_to_r     #real voltage to-side of line
         vg_to_i     #imaginary voltage to-side of line
@@ -128,9 +129,9 @@ function get_internal_model(::Type{DroopModel}, ::Type{N}) where {N <: NetworkMo
         #𝜕il_i/𝜕t
         (Ωb / lg) * ((vg_from_i - vg_to_i) - (rg * il_i + lg * ω_sys * il_r))
         #𝜕vg_from_r/𝜕t
-        (Ωb / cg) * (if_r - il_r) + Ωb * ω_sys * vg_from_i
+        (Ωb / cg) * ((if_r - il_r) - (gg * vg_from_r - cg * ω_sys * vg_from_i))
         ##𝜕vg_from_i/𝜕t
-        (Ωb / cg) * (if_i - il_i) - Ωb * ω_sys * vg_from_r
+        (Ωb / cg) * ((if_i - il_i) - (gg * vg_from_i + cg * ω_sys * vg_from_r))
         #Filter Equations
         #𝜕ef_d/𝜕t
         (Ωb / cf) * (ic_d - if_d) + Ωb * ω_sys * ef_q
