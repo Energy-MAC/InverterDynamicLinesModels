@@ -32,7 +32,7 @@ docs/site/
 .vscode
 
 #Results
-*.csv
+results/*.csv
 
 ################################################################################
 #                              Operating systems                               #
