@@ -51,25 +51,6 @@ function instantiate_model(
 end
 
 function (M::ModelOperatingPoint)(parameters::Vector{Float64})
-    #initial_guess = [
-    #    0.0,    #il_r
-    #    0.0,    #il_i
-    #    1.0,    #vg_from_r
-    #    0.0,    #vg_from_r
-    #    0.95,   #ef_d
-    #    -0.1,   #ef_q
-    #    0.5,    #ic_d
-    #    0.0,    #ic_q
-    #    0.49,   #if_d
-    #    -0.1,   #if_q
-    #    0.0015, #ξ_d
-    #    -0.07,  #ξ_q
-    #    0.05,   #γ_d
-    #    -0.001, #γ_q
-    #    0.2,    #θ
-    #    1.0,    #ω or pf
-    #    0.025,   #qf
-    #]
     res = NLsolve.nlsolve((out, x) -> M.sys_func(out, x, parameters), M.u0)
     !NLsolve.converged(res) && @error("NLsolve failed to converge")
     M.parameters .= parameters
