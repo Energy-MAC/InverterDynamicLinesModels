@@ -49,18 +49,18 @@ function instantiate_parameters(::Type{VInertia}, system::PSY.System)
     _Sb = 100.0 # Get using PSY
     _Sinv = 2.75 # Get using PSY
     _Vb = 220 #110 kV
-    Zb = _Vb^2/_Sb
+    Zb = _Vb^2 / _Sb
 
     #Kiwi Line
     _r = 29.4e-3 #r_per_km 60 Hz
     _x = 0.306 #x_per_km 60 Hz
-    _yc = 1im*5.4945e-6 #yc_per_km 60 Hz
+    _yc = 1im * 5.4945e-6 #yc_per_km 60 Hz
 
     l = 100 #km
-    _z = _r + 1im*_x
+    _z = _r + 1im * _x
     γ = sqrt(_z * _yc)
-    _Z = (_r + 1im*_x) * l * (sinh(γ * l) / (γ * l))
-    _Yc = (_yc * l)/2 * (tanh(γ * l) / (γ * l / 2))
+    _Z = (_r + 1im * _x) * l * (sinh(γ * l) / (γ * l))
+    _Yc = (_yc * l) / 2 * (tanh(γ * l) / (γ * l / 2))
     _Z_pu = _Z / Zb
     _Yc_pu = _Yc * Zb
 
@@ -157,25 +157,25 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
     rv,
     lv,
     # Base Power
-    Sinv = MTK.parameters(get_nonlinear_system(DroopModel,  DynamicLines)) # Sampling time = parameters(model)
+    Sinv = MTK.parameters(get_nonlinear_system(DroopModel, DynamicLines)) # Sampling time = parameters(model)
 
     fb = PowerSystems.get_frequency(system) # Get using PSY. Not updating json file.
     _Ωb = 2 * pi * fb
     _Sb = 100.0 # Get using PSY
     _Sinv = 2.75 # Get using PSY
     _Vb = 230 #230 kV
-    Zb = _Vb^2/_Sb
+    Zb = _Vb^2 / _Sb
 
     #Kiwi Line
     _r = 29.4e-3 #r_per_km 60 Hz
     _x = 0.306 #x_per_km 60 Hz
-    _yc = 1im*5.4945e-6 #yc_per_km 60 Hz
+    _yc = 1im * 5.4945e-6 #yc_per_km 60 Hz
 
     l = 100 #km
     _z = _r + 1im * _x
     γ = sqrt(_z * _yc)
-    _Z = (_r + 1im*_x) * l * (sinh(γ * l) / (γ * l))
-    _Yc = (_yc * l)/2 * (tanh(γ * l) / (γ * l / 2))
+    _Z = (_r + 1im * _x) * l * (sinh(γ * l) / (γ * l))
+    _Yc = (_yc * l) / 2 * (tanh(γ * l) / (γ * l / 2))
     _Z_pu = _Z / Zb
     _Yc_pu = _Yc * Zb
 

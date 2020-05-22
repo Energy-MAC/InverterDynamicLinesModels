@@ -26,7 +26,6 @@ ss_vsm(M_vsm, jac_vsm)
 #Report Eigenvalues
 ss_vsm.eigen_vals
 
-
 #### VSM model with Algebraic Lines ####
 
 parameter_mapping = instantiate_parameters(VInertia, omib_sys)
@@ -38,7 +37,6 @@ ss_vsm_slines(M_vsm_slines, jac_vsm_slines)
 
 # Report Eigenvalues
 ss_vsm_slines.eigen_vals
-
 
 #### VSM Model with Filter+Lines Algebraic ####
 
