@@ -48,7 +48,7 @@ function instantiate_parameters(::Type{VInertia}, system::PSY.System)
     _Ωb = 2 * pi * fb
     _Sb = 100.0 # Get using PSY
     _Sinv = 2.75 # Get using PSY
-    _Vb = 220 #110 kV
+    _Vb = 230 #230 kV
     Zb = _Vb^2 / _Sb
 
     #Kiwi Line
