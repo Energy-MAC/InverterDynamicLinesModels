@@ -18,7 +18,9 @@ M_vsm = instantiate_model(VInertia, DynamicLines, omib_sys)
 #Instantiate x0 for parameters
 u0 = M_vsm(parameter_mapping) # works as a test, not really necessary to call
 #Instantiate Jacobian
-jac_vsm = instantiate_jacobian(M_vsm)
+jac_exp_vsm = get_jacobian_function(VInertia, DynamicLines);
+fjac_vsm = eval(jac_exp);
+jac_vsm = instantiate_jacobian(M_vsm, fjac_vsm)
 #Instantiate Small Signal Object
 ss_vsm = instantiate_small_signal(M_vsm, jac_vsm)
 #Update Small Signal Object
