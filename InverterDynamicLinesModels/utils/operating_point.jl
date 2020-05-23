@@ -11,7 +11,7 @@ function instantiate_model(
     solve_powerflow = false,
 ) where {T <: InverterModel, N <: NetworkModel}
     nl_sys = get_nonlinear_system(T, N)
-    variable_count = length(states(nl_sys))
+    variable_count = length(MTK.states(nl_sys))
     nlsys_func = MTK.generate_function(nl_sys, expression = Val{false})[2]
     sys_f = (out, x, param) -> nlsys_func(out, x, param)
 
@@ -59,7 +59,7 @@ function (M::ModelOperatingPoint)(parameters::Vector{Float64})
 end
 
 function (M::ModelOperatingPoint)(
-    parameters::Array{Pair{Variable{ModelingToolkit.Parameter{Number}}, Float64}, 1},
+    parameters::Vector{Pair{MTK.Variable{MTK.Parameter{Number}}, Float64}},
 )
     parameter_values = [x.second for x in parameters]
     return M(parameter_values)
