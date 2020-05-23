@@ -39,7 +39,7 @@ function instantiate_jacobian(
     J = zeros(n, n)
     param_eval(J, M.parameters)
     ix = trues(n)
-    ix[1:4] .= false
+    ix[1:6] .= false
     states_ix = ix
     vars_ix = .!ix
     gy = J[vars_ix, vars_ix]
@@ -60,7 +60,7 @@ function instantiate_jacobian(
     J = zeros(n, n)
     param_eval(J, M.parameters)
     ix = trues(n)
-    ix[1:10] .= false
+    ix[1:12] .= false
     states_ix = ix
     vars_ix = .!ix
     gy = J[vars_ix, vars_ix]
@@ -84,7 +84,7 @@ function (J::ModelJacobian)(
     J.J_func(J.J_Matrix, M.u0, M.parameters)
     jac = J.J_Matrix
     ix = trues(length(M.u0))
-    ix[1:4] .= false
+    ix[1:6] .= false
     states_ix = ix
     vars_ix = .!ix
     gy = jac[vars_ix, vars_ix]
@@ -100,7 +100,7 @@ function (J::ModelJacobian)(M::ModelOperatingPoint{T, ACStatic}) where {T <: Inv
     J.J_func(J.J_Matrix, M.u0, M.parameters)
     jac = J.J_Matrix
     ix = trues(length(M.u0))
-    ix[1:10] .= false
+    ix[1:12] .= false
     states_ix = ix
     vars_ix = .!ix
     gy = jac[vars_ix, vars_ix]

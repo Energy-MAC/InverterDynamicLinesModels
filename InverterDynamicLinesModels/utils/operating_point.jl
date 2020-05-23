@@ -28,7 +28,9 @@ function instantiate_model(
         0.0,    #il_r
         0.0,    #il_i
         1.0,    #vg_from_r
-        0.0,    #vg_from_r
+        0.0,    #vg_from_i
+        1.0,    #vg_to_r
+        0.0,    #vg_to_i 
         0.95,   #ef_d
         -0.1,   #ef_q
         0.5,    #ic_d

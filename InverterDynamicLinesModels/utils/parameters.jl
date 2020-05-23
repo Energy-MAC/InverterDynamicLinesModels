@@ -42,7 +42,8 @@ function instantiate_parameters(::Type{VInertia}, system::PSY.System)
     rv,
     lv,
     # Base Power
-    Sinv = MTK.parameters(get_nonlinear_system(VInertia, DynamicLines)) # Sampling time = parameters(model)
+    Sinv,
+    Xinf = MTK.parameters(get_nonlinear_system(VInertia, DynamicLines)) # Sampling time = parameters(model)
 
     fb = PowerSystems.get_frequency(system) # Get using PSY. Not updating json file.
     _Ωb = 2 * pi * fb
@@ -97,7 +98,7 @@ function instantiate_parameters(::Type{VInertia}, system::PSY.System)
         ωf => 1000.0
         # Inner Control Loops
         # SRF Voltage Control
-        kpv => 0.59 # Get using PSY
+        kpv => 0.59 # Get using PSY (24)
         kiv => 736.0 # Get using PSY
         kffi => 0.0 # Get using PSY
         # SRF Current Control
@@ -109,6 +110,7 @@ function instantiate_parameters(::Type{VInertia}, system::PSY.System)
         lv => 0.2   # Get using PSY
         # Base Power
         Sinv => _Sinv * 10 #N = 10
+        Xinf => 0.00001
     ]
     return p
 end
