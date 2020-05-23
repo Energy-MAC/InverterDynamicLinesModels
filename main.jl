@@ -1,6 +1,7 @@
-#using OrdinaryDiffEq #Gets the solvers
+using OrdinaryDiffEq #Gets the solvers
 using PowerSystems
-#using Plots
+using Plots
+plotlyjs()
 
 include(joinpath(pwd(), "InverterDynamicLinesModels", "InverterDynamicLinesModels.jl"))
 # Only need to run this line to re-generate the system data
@@ -10,13 +11,8 @@ include(joinpath(pwd(), "InverterDynamicLinesModels", "InverterDynamicLinesModel
 omib_sys = System(joinpath(pwd(), "data", "OMIB_inverter.json"))
 
 #### VSM model with Full Lines ####
-
-#Instantiate Parameters for VSM model
-parameter_mapping = instantiate_parameters(VInertia, omib_sys)
 #Instantiate VSM Model with DynamicLines
 M_vsm = instantiate_model(VInertia, DynamicLines, omib_sys)
-#Instantiate x0 for parameters
-u0 = M_vsm(parameter_mapping) # works as a test, not really necessary to call
 #Instantiate Jacobian
 jac_exp_vsm = get_jacobian_function(VInertia, DynamicLines);
 fjac_vsm = eval(jac_exp);
@@ -28,11 +24,13 @@ ss_vsm(M_vsm, jac_vsm)
 #Report Eigenvalues
 ss_vsm.eigen_vals
 
-#### VSM model with Algebraic Lines ####
+#Run ODE problem
+ode_vsm = instantiate_ode(M_vsm; tspan = (0.0, 5))
+sol_vsm = solve(ode_vsm, GRK4T())
+plot(sol_vsm)
 
-parameter_mapping = instantiate_parameters(VInertia, omib_sys)
+#### VSM model with Algebraic Lines ####
 M_vsm_slines = instantiate_model(VInertia, StaticLines, omib_sys)
-u0 = M_vsm_slines(parameter_mapping) # works as a test, not really necessary to call
 jac_vsm_slines = instantiate_jacobian(M_vsm_slines)
 ss_vsm_slines = instantiate_small_signal(M_vsm_slines, jac_vsm_slines)
 ss_vsm_slines(M_vsm_slines, jac_vsm_slines)
@@ -40,11 +38,13 @@ ss_vsm_slines(M_vsm_slines, jac_vsm_slines)
 # Report Eigenvalues
 ss_vsm_slines.eigen_vals
 
-#### VSM Model with Filter+Lines Algebraic ####
+#Run ODE problem
+ode_vsm_slines = instantiate_ode(M_vsm_slines; tspan = (0.0, 5))
+sol_vsm_slines = solve(ode_vsm_slines, GRK4T())
+plot(sol_vsm_slines)
 
-parameter_mapping = instantiate_parameters(VInertia, omib_sys)
+#### VSM Model with Filter+Lines Algebraic ####
 M_vsm_static = instantiate_model(VInertia, ACStatic, omib_sys)
-u0 = M_vsm_static(parameter_mapping) # works as a test, not really necessary to call
 jac_vsm_static = instantiate_jacobian(M_vsm_static)
 ss_vsm_static = instantiate_small_signal(M_vsm_static, jac_vsm_static)
 ss_vsm_static(M_vsm_static, jac_vsm_static)
@@ -52,10 +52,14 @@ ss_vsm_static(M_vsm_static, jac_vsm_static)
 #Report Eigenvalues
 ss_vsm_static.eigen_vals
 
+#Run ODE problem
+ode_vsm_static = instantiate_ode(M_vsm_static; tspan = (0.0, 5))
+sol_vsm_static = solve(ode_vsm_static, GRK4T())
+plot(sol_vsm_static)
+
+#= Droop Model not functional
 #### Droop Model with Full Dynamic Lines ####
-parameter_mapping = instantiate_parameters(DroopModel, omib_sys)
 M_droop = instantiate_model(DroopModel, DynamicLines, omib_sys)
-u0 = M_droop(parameter_mapping) # works as a test, not really necessary to call
 jac_droop = instantiate_jacobian(M_droop)
 ss_droop = instantiate_small_signal(M_droop, jac_droop)
 ss_droop(M_droop, jac_droop)
@@ -63,10 +67,14 @@ ss_droop(M_droop, jac_droop)
 #Report Eigenvalues
 ss_droop.eigen_vals
 
-# Returns Generic ODE system and solves
-#ode_prob = instantiate_ode(omib_sys; tspan = (0.0, 5))
-#ode_prob = instantiate_ode(M; tspan = (0.0, 5))
-#sol1 = solve(ode_prob, Rosenbrock23())
+#Run ODE problem
+ode_droop = instantiate_ode(M_droop; tspan = (0.0, 5))
+sol_droop = solve(ode_droop, GRK4T())
+plot(sol_droop)
+=#
+
+# Returns Generic ODE system
+
 #plot(sol1, vars = (0, 13))
 
 #=
