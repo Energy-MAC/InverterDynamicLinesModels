@@ -14,7 +14,7 @@ function get_ode_system(::Type{T}, ::Type{StaticLines}) where {T <: InverterMode
 end
 
 function get_ode_system(::Type{T}, ::Type{ACStatic}) where {T <: InverterModel}
-    _model_lhs, model_rhs, states, _, params = get_internal_model(T, StaticLines)
+    _model_lhs, model_rhs, states, _, params = get_internal_model(T, ACStatic)
     t = params[1]
     model_lhs = vcat(zeros(10), _model_lhs[11:end])
     _eqs = model_lhs .~ model_rhs
