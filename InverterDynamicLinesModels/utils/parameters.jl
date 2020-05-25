@@ -96,7 +96,7 @@ function instantiate_parameters(::Type{VInertia}, system::PSY.System)
         lt => 0.075  # Get using PSY
         # Outer Control Loops
         # Active Power Droop Control
-        M => 0.05 #2.0
+        M => 0.5 #2.0
         kd => 400.0 # Get using PSY
         kp => 0.02 #20.0
         kq => 0.02

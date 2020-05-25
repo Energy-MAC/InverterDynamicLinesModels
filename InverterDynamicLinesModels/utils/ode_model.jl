@@ -11,10 +11,10 @@ struct CircuitTrip <: Perturbation
         function CircuitTrip(;time::Float64, droppped_circuits::Float64 = 1.0)
             condition(u, t, integrator) = t == time
             function affect!(integrator)
-                integrator.p[4] = integrator.p[4]*droppped_circuits+1
-                integrator.p[5] = integrator.p[5]*droppped_circuits+1
-                integrator.p[4] = integrator.p[6]/(droppped_circuits+1)
-                integrator.p[5] = integrator.p[7]/(droppped_circuits+1)
+                integrator.p[4] = integrator.p[4]*(droppped_circuits+1)
+                integrator.p[5] = integrator.p[5]*(droppped_circuits+1)
+                integrator.p[6] = integrator.p[6]/(droppped_circuits+1)
+                integrator.p[7] = integrator.p[7]/(droppped_circuits+1)
             end
             new(
                    time,
