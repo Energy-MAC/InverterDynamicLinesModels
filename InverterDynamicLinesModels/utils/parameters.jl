@@ -179,7 +179,7 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
     #_x = 0.306 #x_per_km 60 Hz
     #_yc = 1im * 5.4945e-6 #yc_per_km 60 Hz
 
-    #Kundur 230 kV line
+    #Kundur 230 kV line. Parameters per km.
     _r = 50e-3
     _x = 0.488
     _yc = 1im * 3.371e-6
@@ -200,10 +200,10 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
         #lg => 0.0025289*42
         #rg => 0.0002429*42
         #cg => 0.0006648*42
-        lg => imag(_Z_pu)
-        rg => real(_Z_pu)
-        cg => imag(_Yc_pu)
-        gg => real(_Yc_pu)
+        lg => imag(_Z_pu) * (1/2)
+        rg => real(_Z_pu) * (1/2)
+        cg => imag(_Yc_pu) * (2)
+        gg => real(_Yc_pu) * (2)
         # Infinite bus voltage
         vinf_r => 1.0
         vinf_i => 0.0
