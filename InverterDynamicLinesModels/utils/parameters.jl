@@ -11,8 +11,8 @@ function instantiate_parameters(::Type{VInertia}, system::PSY.System)
     cg,      # Line capacitance
     gg,      # Line conductance
     # Infinite bus voltage
-    vg_to_r,     #real voltage to-side of line
-    vg_to_i,     #imaginary voltage to-side of line
+    vinf_r,     #real voltage to-side of line
+    vinf_i,     #imaginary voltage to-side of line
     #Reference set-point input
     pʳ,      # Active Power Setpoint
     qʳ,      # Reactive Power Setpoint
@@ -53,15 +53,20 @@ function instantiate_parameters(::Type{VInertia}, system::PSY.System)
     Zb = _Vb^2 / _Sb
 
     #Kiwi Line
-    _r = 29.4e-3 #r_per_km 60 Hz
-    _x = 0.306 #x_per_km 60 Hz
-    _yc = 1im * 5.4945e-6 #yc_per_km 60 Hz
+    #_r = 29.4e-3 #r_per_km 60 Hz
+    #_x = 0.306 #x_per_km 60 Hz
+    #_yc = 1im * 5.4945e-6 #yc_per_km 60 Hz
+
+    #Kundur 230 kV line
+    _r = 50.0e-3
+    _x = 0.488
+    _yc = 1im * 3.371e-6
 
     l = 100 #km
     _z = _r + 1im * _x
     γ = sqrt(_z * _yc)
     _Z = (_r + 1im * _x) * l * (sinh(γ * l) / (γ * l))
-    _Yc = (_yc * l) / 2 * (tanh(γ * l) / (γ * l / 2))
+    _Yc = (_yc * l) / 2 * (tanh(γ * l / 2) / (γ * l / 2))
     _Z_pu = _Z / Zb
     _Yc_pu = _Yc * Zb
 
@@ -70,13 +75,13 @@ function instantiate_parameters(::Type{VInertia}, system::PSY.System)
         ω_sys => 1.0
         Sb => _Sb # Get using PSY
         # Line impedance: Kiwi Line 100km
-        lg => imag(_Z_pu)
-        rg => real(_Z_pu)
-        cg => imag(_Yc_pu)
-        gg => real(_Yc_pu)
+        lg => imag(_Z_pu) * (1/2)
+        rg => real(_Z_pu) * (1/2)
+        cg => imag(_Yc_pu) * (2)
+        gg => real(_Yc_pu) * (2)
         # Infinite bus voltage
-        vg_to_r => 1.0
-        vg_to_i => 0.0
+        vinf_r => 1.0
+        vinf_i => 0.0
         #Reference set-point inputs
         pʳ => 0.5 # Get using PSY
         qʳ => 0.0 # Get using PSY
@@ -109,7 +114,7 @@ function instantiate_parameters(::Type{VInertia}, system::PSY.System)
         rv => 0     # Get using PSY
         lv => 0.2   # Get using PSY
         # Base Power
-        Sinv => _Sinv * 10 #N = 10
+        Sinv => _Sinv * 50 #N = 10
         Xinf => 0.00001
     ]
     return p
@@ -128,8 +133,8 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
     cg,      # Line capacitance
     gg,      # Line conductance
     # Infinite bus voltage
-    vg_to_r,     #real voltage to-side of line
-    vg_to_i,     #imaginary voltage to-side of line
+    vinf_r,     #real voltage to-side of line
+    vinf_i,     #imaginary voltage to-side of line
     #Reference set-point input
     pʳ,      # Active Power Setpoint
     qʳ,      # Reactive Power Setpoint
@@ -159,7 +164,8 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
     rv,
     lv,
     # Base Power
-    Sinv = MTK.parameters(get_nonlinear_system(DroopModel, DynamicLines)) # Sampling time = parameters(model)
+    Sinv,
+    Xinf = MTK.parameters(get_nonlinear_system(DroopModel, DynamicLines)) # Sampling time = parameters(model)
 
     fb = PowerSystems.get_frequency(system) # Get using PSY. Not updating json file.
     _Ωb = 2 * pi * fb
@@ -169,15 +175,20 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
     Zb = _Vb^2 / _Sb
 
     #Kiwi Line
-    _r = 29.4e-3 #r_per_km 60 Hz
-    _x = 0.306 #x_per_km 60 Hz
-    _yc = 1im * 5.4945e-6 #yc_per_km 60 Hz
+    #_r = 29.4e-3 #r_per_km 60 Hz
+    #_x = 0.306 #x_per_km 60 Hz
+    #_yc = 1im * 5.4945e-6 #yc_per_km 60 Hz
+
+    #Kundur 230 kV line
+    _r = 50e-3
+    _x = 0.488
+    _yc = 1im * 3.371e-6
 
     l = 100 #km
     _z = _r + 1im * _x
     γ = sqrt(_z * _yc)
     _Z = (_r + 1im * _x) * l * (sinh(γ * l) / (γ * l))
-    _Yc = (_yc * l) / 2 * (tanh(γ * l) / (γ * l / 2))
+    _Yc = (_yc * l) / 2 * (tanh(γ * l / 2) / (γ * l / 2))
     _Z_pu = _Z / Zb
     _Yc_pu = _Yc * Zb
 
@@ -194,8 +205,8 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
         cg => imag(_Yc_pu)
         gg => real(_Yc_pu)
         # Infinite bus voltage
-        vg_to_r => 1.0
-        vg_to_i => 0.0
+        vinf_r => 1.0
+        vinf_i => 0.0
         #Reference set-point inputs
         pʳ => 0.5 # Get using PSY
         qʳ => 0.0 # Get using PSY
@@ -228,7 +239,8 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
         rv => 0     # Get using PSY
         lv => 0.2   # Get using PSY
         # Base Power
-        Sinv => _Sinv * 10 # N = 10
+        Sinv => _Sinv * 50 # N = 50
+        Xinf => 0.00001
     ]
     return p
 end

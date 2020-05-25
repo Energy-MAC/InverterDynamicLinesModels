@@ -14,8 +14,8 @@ function get_internal_model(::Type{DroopModel}, ::Type{N}) where {N <: NetworkMo
         cg      # Line capacitance
         gg      # Line conductance
         # Infinite bus voltage
-        vg_to_r     #real voltage to-side of line
-        vg_to_i     #imaginary voltage to-side of line
+        vinf_r     #real voltage to-side of line
+        vinf_i     #imaginary voltage to-side of line
         #Reference set-point input
         pʳ      # Active Power Setpoint
         qʳ      # Reactive Power Setpoint
@@ -46,6 +46,7 @@ function get_internal_model(::Type{DroopModel}, ::Type{N}) where {N <: NetworkMo
         lv
         # Base Power
         Sinv    # Base Power for Inverter
+        Xinf    # Series Reactance of Inf Bus
     end
 
     MTK.@derivatives d'~t
@@ -57,8 +58,8 @@ function get_internal_model(::Type{DroopModel}, ::Type{N}) where {N <: NetworkMo
         il_i(t)         # imaginary current flowing in line
         vg_from_r(t)    # real voltage from-side of line
         vg_from_i(t)    # imaginary voltage from-side of line
-        #vg_to_r(t)      # real voltage to-side of line
-        #vg_to_i(t)      # imaginary voltage to-side of line
+        vg_to_r(t)      # real voltage to-side of line
+        vg_to_i(t)      # imaginary voltage to-side of line
         # Filter States
         ef_d(t) # d-axis capacitor filter voltage
         ef_q(t) # q-axis capacitor filter voltage
@@ -84,8 +85,8 @@ function get_internal_model(::Type{DroopModel}, ::Type{N}) where {N <: NetworkMo
         il_i        # imaginary current flowing into grid
         vg_from_r   # real voltage from-side of line
         vg_from_i   # imaginary voltage from-side of line
-        #vg_to_r     # real voltage to-side of line
-        #vg_to_i     # imaginary voltage to-side of line
+        vg_to_r     # real voltage to-side of line
+        vg_to_i     # imaginary voltage to-side of line
         # Filter States
         ef_d # d-axis capacitor filter voltage
         ef_q # q-axis capacitor filter voltage
@@ -121,6 +122,8 @@ function get_internal_model(::Type{DroopModel}, ::Type{N}) where {N <: NetworkMo
     if_i = (Sinv / Sb) * (sin(θ) * if_d + cos(θ) * if_q)
     vg_from_d = cos(θ) * vg_from_r + sin(θ) * vg_from_i
     vg_from_q = -sin(θ) * vg_from_r + cos(θ) * vg_from_i
+    i_inf_r = (vg_to_i - vinf_i) / Xinf
+    i_inf_i = (- vg_to_r + vinf_r ) / Xinf
 
     model_rhs = [
         # Line Equations
@@ -132,6 +135,10 @@ function get_internal_model(::Type{DroopModel}, ::Type{N}) where {N <: NetworkMo
         (Ωb / cg) * ((if_r - il_r) - (gg * vg_from_r - cg * ω_sys * vg_from_i))
         ##𝜕vg_from_i/𝜕t
         (Ωb / cg) * ((if_i - il_i) - (gg * vg_from_i + cg * ω_sys * vg_from_r))
+        #𝜕vg_to_r/𝜕t
+        (Ωb / cg) * ((il_r - i_inf_r) - (gg * vg_to_r - cg * ω_sys * vg_to_i))
+        ##𝜕vg_to_i/𝜕t
+        (Ωb / cg) * ((il_i - i_inf_i) - (gg * vg_to_i + cg * ω_sys * vg_to_r))
         #Filter Equations
         #𝜕ef_d/𝜕t
         (Ωb / cf) * (ic_d - if_d) + Ωb * ω_sys * ef_q
