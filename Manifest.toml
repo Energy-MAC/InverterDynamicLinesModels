@@ -83,9 +83,9 @@ version = "0.10.3"
 
 [[Colors]]
 deps = ["ColorTypes", "FixedPointNumbers", "InteractiveUtils", "Reexport"]
-git-tree-sha1 = "2fdeb981ebcf52cd800ddb6a0aa5eac34153552d"
+git-tree-sha1 = "db9c215e2d92379d341e40dd1d5be893af2bfeb2"
 uuid = "5ae59095-9a9b-59fe-a467-6f913c188581"
-version = "0.12.0"
+version = "0.12.1"
 
 [[Combinatorics]]
 git-tree-sha1 = "08c8b6831dc00bfea825826be0bc8336fc369860"
@@ -145,9 +145,9 @@ version = "0.20.2"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "OrderedCollections"]
-git-tree-sha1 = "7d7578b00789cf16c5f68fad71868e773edd58a2"
+git-tree-sha1 = "af6d9c86e191c917c2276fbede1137e8ea20157f"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.17.16"
+version = "0.17.17"
 
 [[DataValueInterfaces]]
 git-tree-sha1 = "bfc1187b79289637fa0ef6d4436ebdfe6905cbd6"
@@ -164,9 +164,9 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[DiffEqBase]]
 deps = ["ArrayInterface", "ChainRulesCore", "ConsoleProgressMonitor", "DataStructures", "Distributed", "DocStringExtensions", "FunctionWrappers", "IterativeSolvers", "IteratorInterfaceExtensions", "LabelledArrays", "LinearAlgebra", "Logging", "LoggingExtras", "MuladdMacro", "Parameters", "Printf", "ProgressLogging", "RecipesBase", "RecursiveArrayTools", "RecursiveFactorization", "Requires", "Roots", "SparseArrays", "StaticArrays", "Statistics", "SuiteSparse", "TableTraits", "TerminalLoggers", "TreeViews", "ZygoteRules"]
-git-tree-sha1 = "b15841f74396fc6cd2e1982656bf6473244a2d2c"
+git-tree-sha1 = "b269aefc5885524cd885f4bee9a233e7b6b6b6e5"
 uuid = "2b5f629d-d688-5b77-993f-72d75c75574e"
-version = "6.35.0"
+version = "6.35.2"
 
 [[DiffEqJump]]
 deps = ["Compat", "DataStructures", "DiffEqBase", "FunctionWrappers", "LinearAlgebra", "Parameters", "PoissonRandom", "Random", "RandomNumbers", "RecursiveArrayTools", "StaticArrays", "Statistics", "TreeViews"]
@@ -228,9 +228,9 @@ version = "0.7.0"
 
 [[FiniteDiff]]
 deps = ["ArrayInterface", "LinearAlgebra", "Requires", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "e65805de69d457029940acff64dd92e57b93c8a5"
+git-tree-sha1 = "fec7c2cb45c27071ef487fa7cae4fcac7509aa10"
 uuid = "6a86dc24-6348-571c-b903-95158fe2bd41"
-version = "2.3.1"
+version = "2.3.2"
 
 [[FixedPointNumbers]]
 git-tree-sha1 = "3ba9ea634d4c8b289d590403b4a06f8e227a6238"
@@ -458,10 +458,10 @@ version = "0.4.3"
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[ModelingToolkit]]
-deps = ["ArrayInterface", "DiffEqBase", "DiffEqJump", "DiffRules", "Distributed", "DocStringExtensions", "GeneralizedGenerated", "Latexify", "LightGraphs", "LinearAlgebra", "MacroTools", "NaNMath", "RecursiveArrayTools", "SafeTestsets", "SparseArrays", "SpecialFunctions", "StaticArrays", "SymbolicUtils", "TreeViews", "UnPack", "Unitful"]
-git-tree-sha1 = "3e9a0f9141a0124e75d1490f214808d0f53f055f"
+deps = ["ArrayInterface", "DataStructures", "DiffEqBase", "DiffEqJump", "DiffRules", "Distributed", "DocStringExtensions", "GeneralizedGenerated", "Latexify", "LightGraphs", "LinearAlgebra", "MacroTools", "NaNMath", "RecursiveArrayTools", "SafeTestsets", "SparseArrays", "SpecialFunctions", "StaticArrays", "SymbolicUtils", "TreeViews", "UnPack", "Unitful"]
+git-tree-sha1 = "033e261775aa4cf55533b2335df4fb4e80ab97bb"
 uuid = "961ee093-0014-501f-94e3-6117800e7a78"
-version = "3.6.1"
+version = "3.6.3"
 
 [[MuladdMacro]]
 git-tree-sha1 = "c6190f9a7fc5d9d5915ab29f2134421b12d24a68"
@@ -528,9 +528,9 @@ version = "1.2.0"
 
 [[OrdinaryDiffEq]]
 deps = ["ArrayInterface", "DataStructures", "DiffEqBase", "ExponentialUtilities", "FiniteDiff", "ForwardDiff", "GenericSVD", "LinearAlgebra", "Logging", "MacroTools", "MuladdMacro", "NLsolve", "RecursiveArrayTools", "Reexport", "SparseArrays", "SparseDiffTools", "StaticArrays", "UnPack"]
-git-tree-sha1 = "98ae9c7d2bb987a6ab0e4664ff9f6252052c18fb"
+git-tree-sha1 = "51ff96c04944652c3f5ded3ce5bf13c961d2b26d"
 uuid = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
-version = "5.38.1"
+version = "5.38.2"
 
 [[Parameters]]
 deps = ["OrderedCollections", "UnPack"]
@@ -829,9 +829,9 @@ version = "1.2.11+10"
 
 [[Zstd_jll]]
 deps = ["Libdl", "Pkg"]
-git-tree-sha1 = "f23995a6ab76d634865204fe0a4e7254d1a6d1f9"
+git-tree-sha1 = "b25b0fb10176c42e9a5a20e1f40d570ac0288d4e"
 uuid = "3161d3a3-bdf6-5164-811a-617609db77b4"
-version = "1.4.4+1"
+version = "1.4.5+0"
 
 [[ZygoteRules]]
 deps = ["MacroTools"]
