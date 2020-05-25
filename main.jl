@@ -34,18 +34,27 @@ sol_vsm = solve(ode_vsm, GRK4T())
 plot(sol_vsm)
 
 #### VSM model with Algebraic Lines ####
-M_vsm_slines = instantiate_model(VInertia, StaticLines, omib_sys)
-jac_vsm_slines = instantiate_jacobian(M_vsm_slines)
-ss_vsm_slines = instantiate_small_signal(M_vsm_slines, jac_vsm_slines)
-ss_vsm_slines(M_vsm_slines, jac_vsm_slines)
-
-# Report Eigenvalues
-ss_vsm_slines.eigen_vals
+M_vsm = instantiate_model(VInertia, StaticLines, omib_sys)
+#Instantiate Jacobian
+jac_exp_vsm = get_jacobian_function(VInertia, StaticLines);
+fjac_vsm = eval(jac_exp_vsm);
+jac_vsm = instantiate_jacobian(M_vsm, fjac_vsm)
+#Instantiate Small Signal Object
+ss_vsm = instantiate_small_signal(M_vsm, jac_vsm)
+#Update Small Signal Object
+ss_vsm(M_vsm, jac_vsm)
+#Report Eigenvalues
+ss_vsm.eigen_vals
 
 #Run ODE problem
-ode_vsm_slines = instantiate_ode(M_vsm_slines, CircuitTrip(time = 1.0); tspan = (0.0, 5))
-sol_vsm_slines = solve(ode_vsm_slines, GRK4T())
-plot(sol_vsm_slines)
+ode_vsm1 = instantiate_ode(M_vsm, CircuitTrip(time = 1.0); tspan = (0.0, 5))
+sol_vsm1 = solve(ode_vsm1, GRK4T())
+plot(sol_vsm1)
+
+ode_vsm = instantiate_ode(M_vsm, PowerOutputIncrease(time = 1.0, new_value = 0.65); tspan = (0.0, 5))
+sol_vsm = solve(ode_vsm, GRK4T())
+plot(sol_vsm)
+
 
 #### VSM Model with Filter+Lines Algebraic ####
 M_vsm_static = instantiate_model(VInertia, ACStatic, omib_sys)

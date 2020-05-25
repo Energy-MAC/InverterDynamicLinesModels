@@ -222,7 +222,7 @@ function instantiate_parameters(::Type{DroopModel}, system::PSY.System)
         # Outer Control Loops
         # Active Power Droop control
         kp => 0.02
-        kq => 0.02
+        kq => 0.2
         kα => 0.005
         kβ => 0.005
         ωf => 1000.0
