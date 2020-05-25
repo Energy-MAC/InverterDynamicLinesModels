@@ -1,14 +1,14 @@
 abstract type Perturbation end
 mutable struct Simulation
     problem::DiffEqBase.ODEProblem
-    perturbations::Vector{<:Perturbation}
+    perturbations::Vector
 end
 
 struct CircuitTrip <: Perturbation
     time::Float64
     droppped_circuits::Float64
-    callback::DiffEqBase.DiscreteCallback
-        function CircuitTrip(;time::Float64, droppped_circuits::Float64)
+    callback::DiffEqBase.AbstractDiscreteCallback
+        function CircuitTrip(;time::Float64, droppped_circuits::Float64 = 1.0)
             condition(u, t, integrator) = t == time
             function affect!(integrator)
                 integrator.p[4] = integrator.p[4]*droppped_circuits+1
@@ -16,27 +16,26 @@ struct CircuitTrip <: Perturbation
                 integrator.p[4] = integrator.p[6]/(droppped_circuits+1)
                 integrator.p[5] = integrator.p[7]/(droppped_circuits+1)
             end
-            return CircuitTrip(
+            new(
                    time,
                    droppped_circuits,
-                   DiffEqBase.DiscreteCallback(condition,affect!)
+                   DiffEqBase.DiscreteCallback(condition, affect!)
             )
         end
 end
-CirtuitTrip(t::Float64) = CirtuitTrip(t, 1.0)
 
 struct PowerOutputIncrease <: Perturbation
     time::Float64
     new_value::Float64
-    callback::DiffEqBase.DiscreteCallback
-        function PowerOutputIncrease(;time::Float64, droppped_circuits::Float64)
+    callback::DiffEqBase.AbstractDiscreteCallback
+        function PowerOutputIncrease(;time::Float64, new_value::Float64)
             condition(u, t, integrator) = t == time
             function affect!(integrator)
                 integrator.p[10] = new_value
             end
-            return PowerOutputIncrease(
+            new(
                    time,
-                   droppped_circuits,
+                   new_value,
                    DiffEqBase.DiscreteCallback(condition,affect!)
             )
         end
@@ -83,4 +82,13 @@ function instantiate_ode(system::PSY.System, ::Type{T}, ::Type{N}, perturbations
         jac = false,
     )
     Simulation(problem, [perturbations...])
+end
+
+function solve(sim::Simulation, integrator; kwargs...)
+    if isempty(sim.perturbations)
+        return solve(sim.problem, integrator; kwargs...)
+    end
+    cb = DiffEqBase.CallbackSet((), tuple(getfield.(sim.perturbations, :callback)...))
+    tstops = [getfield.(sim.perturbations, :time)...]
+    return DiffEqBase.solve(sim.problem, integrator, callback=cb, tstops = tstops; kwargs...)
 end
